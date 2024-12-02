@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+    <style>
+        .result-image {
+            width: 200px;
+            height: 200px;
+        }
+        .result-panel {
+            width: 650px;
+            height: 400px;
+        }
+    </style>
+    <script type="text/javascript">
+        var file;
+        function search() {
+            const formData = new FormData();
+            formData.append('file', file);
+            var req = fetch('/froogle-search', {
+              method: 'post',
+              body: formData
+            });
+
+            req.then(function(response) {
+              response.json().then(function(json) {
+                console.log(json);
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[0].image;
+                document.getElementById('image0').src = src
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[1].image;
+                document.getElementById('image1').src = src
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[2].image;
+                document.getElementById('image2').src = src
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[3].image;
+                document.getElementById('image3').src = src
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[4].image;
+                document.getElementById('image4').src = src
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.WonderImage[5].image;
+                document.getElementById('image5').src = src
+
+              });
+            }, function(error) {
+              console.error('failed due to network error or cross domain')
+            });
+        }
+        async function selectFile(event) {
+            file = event.target.files.item(0);
+            console.log(file);
+
+            var fr = new FileReader();
+            fr.readAsDataURL(file);
+            fr.onload = function () {
+                document.getElementById('imageToSearch').src = fr.result;
+            }
+        }
+    </script>
+</head>
+<body>
+<h3>Froogle Search</h3>
+<table>
+    <tbody>
+    <tr>
+        <td>
+            Image to search:
+        </td>
+        <td rowspan="3">
+            <img id="imageToSearch" width="150" height="150">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="file" name="file" id="file" onchange="selectFile(event)"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" value="Search" onclick="search()"/>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div id="result">Results</div>
+<div class="result-panel">
+    <img id="image0" class="result-image"/>
+    <img id="image1" class="result-image">
+    <img id="image2" class="result-image">
+    <img id="image3" class="result-image">
+    <img id="image4" class="result-image">
+    <img id="image5" class="result-image">
+</div>
+</body>
+</html>

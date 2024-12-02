@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+    <script type="text/javascript">
+        var file;
+        function search() {
+            const formData = new FormData();
+            formData.append('file', file);
+            var req = fetch('/celebrity-search', {
+              method: 'post',
+              body: formData
+            });
+
+            req.then(function(response) {
+              response.json().then(function(json) {
+                console.log(json);
+
+                src = "data:image/jpeg;base64, " + json.result.data.Get.Celebrities[0].image;
+                document.getElementById('image').src = src;
+              });
+            }, function(error) {
+              console.error('failed due to network error or cross domain')
+            });
+        }
+        async function selectFile(event) {
+            file = event.target.files.item(0);
+            console.log(file);
+
+            var fr = new FileReader();
+            fr.readAsDataURL(file);
+            fr.onload = function () {
+                document.getElementById('imageToSearch').src = fr.result;
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Celebrity Doppelganger Search</h1>
+<table>
+    <tbody>
+    <tr>
+        <td>
+            Image to search:
+        </td>
+        <td rowspan="3">
+            <img id="imageToSearch" width="200" height="200">
+        </td>
+        <td rowspan="3">
+            <img id="image" width="200" height="200">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="file" name="file" id="file" onchange="selectFile(event)"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" value="Search" onclick="search()"/>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

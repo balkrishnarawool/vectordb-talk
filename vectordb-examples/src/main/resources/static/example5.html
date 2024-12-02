@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <style>
+            .small-label {
+              display: flex;
+              align-items: center;
+              font-size: 15px;
+              width: 1000px;
+              height: 20px;
+              padding-left: 10px;
+            }
+        </style>
+        <script type="text/javascript">
+            function chat() {
+                var input = document.getElementById('input').value;
+                let list = document.getElementById("myList");
+                let li = document.createElement('li');
+                li.innerText = 'You: '+input;
+                list.appendChild(li);
+
+                fetchWithTimeout(
+                    '/epic-support/chat?message='+input,
+                    (response) => { updateResult(response); },
+                    () => { alert('Error retrieving vector embedding. Try again!'); },
+                );
+            }
+            function updateResult(response) {
+                    let list = document.getElementById("myList");
+                    let li = document.createElement('li');
+                    li.innerText = 'Support: '+response.message;
+                    list.appendChild(li);
+            }
+            async function fetchWithTimeout(url, onSuccess, onError) {
+                var timeout = false;
+                let timeoutId = setTimeout(() => {
+                    timeout = true;
+                    onError();
+                }, 100000);
+                let headers = new Headers([
+                    ['Content-Type', 'application/json'],
+                    ['Accept', 'application/json']
+                ]);
+                let request = new Request(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                let result = await fetch(request);
+                clearTimeout(timeoutId);
+                console.log(result);
+                let response = await result.json();
+                if (!timeout) {
+                    onSuccess(response);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div style="height: 20px">
+            <input id="input" style="width: 720px"/>
+        </div>
+        <br>
+        <div style="height: 20px">
+            <input type="button" value="Send message" onclick="chat()"/>
+        </div>
+        <br>
+        <label>Chat history</label>
+        <br>
+        <ul id="myList"></ul>
+    </body>
+</html>

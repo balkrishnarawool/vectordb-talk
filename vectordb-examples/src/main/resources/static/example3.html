@@ -1,0 +1,217 @@
+<html>
+    <head>
+        <style>
+            label {
+              display: flex;
+              align-items: center;
+              font-size: 20px;
+              padding-left: 10px;
+            }
+            .small-label {
+              display: flex;
+              align-items: center;
+              font-size: 15px;
+              height: 20px;
+              padding-left: 10px;
+            }
+            table, th, td {
+              border: 1px solid black;
+            }
+            th, td {
+              font-size: 10px;
+              height: 25px;
+            }
+            td {
+              padding-left: 10px;
+              width: 150px;
+            }
+            .small-column {
+                width: 150px;
+                height: 150px;
+                display: flex;
+                flex-direction: column;
+            }
+            .small-column-element {
+                width: 150px;
+                height: 30px;
+            }
+            .column-gap {
+                width: 20px;
+                height: 150px;
+            }
+            textarea {
+                width: 500px;
+                height: 120px;
+                padding-left: 10px;
+            }
+            .panel {
+                width: 700px;
+                height: 150px;
+                display: flex;
+                flex-direction: row;
+            }
+            .equation {
+                width: 700px;
+                height: 50px;
+                display: flex;
+                flex-direction: row;
+            }
+            .equation-element {
+                width: 200px;
+                height: 30px;
+            }
+            .equation-label {
+                width: 20px;
+                height: 30px;
+            }
+            .equation-button-div {
+                width: 650px;
+                height: 50px;
+            }
+            .equation-button {
+                width: 650px;
+                height: 30px;
+            }
+        </style>
+        <script type="text/javascript">
+            function showVector() {
+                var input = document.getElementById('input').value;
+                fetchWithTimeout(
+                    '/wiki/embedding?word='+input,
+                    (response) => { updateResult('['+response.vector+']'); },
+                    () => { alert('Error retrieving vector embedding!'); },
+                );
+            }
+            function showSimilarWords() {
+                var input = document.getElementById('input').value;
+                fetchWithTimeout(
+                    '/wiki/nearest-neighbours?word='+input,
+                    (response) => { updateResult(JSON.stringify(response)); },
+                    () => { alert('Error retrieving similar words!'); },
+                );
+            }
+            function updateResult(result) {
+                document.getElementById('result').innerHTML = result;
+            }
+            function calculateAndShowResult() {
+                var start = document.getElementById('start').value;
+                var toSubtract = document.getElementById('toSubtract').value;
+                var toAdd = document.getElementById('toAdd').value;
+                fetchWithTimeout(
+                    '/wiki/equation?start='+start+'&toSubtract='+toSubtract+'&toAdd='+toAdd,
+                    (response) => { showEquationResult(response); },
+                    () => { alert('Error evaluating equation!'); },
+                );
+            }
+            function showEquationResult(response) {
+                document.getElementById('word1').innerHTML = response[0].word;
+                document.getElementById('distance1').innerHTML = response[0].distance;
+                document.getElementById('word2').innerHTML = response[1].word;
+                document.getElementById('distance2').innerHTML = response[1].distance;
+                document.getElementById('word3').innerHTML = response[2].word;
+                document.getElementById('distance3').innerHTML = response[2].distance;
+                document.getElementById('word4').innerHTML = response[3].word;
+                document.getElementById('distance4').innerHTML = response[3].distance;
+                document.getElementById('word5').innerHTML = response[4].word;
+                document.getElementById('distance5').innerHTML = response[4].distance;
+                document.getElementById('word6').innerHTML = response[5].word;
+                document.getElementById('distance6').innerHTML = response[5].distance;
+                document.getElementById('word7').innerHTML = response[6].word;
+                document.getElementById('distance7').innerHTML = response[6].distance;
+                document.getElementById('word8').innerHTML = response[7].word;
+                document.getElementById('distance8').innerHTML = response[7].distance;
+                document.getElementById('word9').innerHTML = response[8].word;
+                document.getElementById('distance9').innerHTML = response[8].distance;
+                document.getElementById('word10').innerHTML = response[9].word;
+                document.getElementById('distance10').innerHTML = response[9].distance;
+            }
+            async function fetchWithTimeout(url, onSuccess, onError) {
+                var timeout = false;
+                let timeoutId = setTimeout(() => {
+                    timeout = true;
+                    onError();
+                }, 2000);
+                let headers = new Headers([
+                    ['Content-Type', 'application/json'],
+                    ['Accept', 'application/json']
+                ]);
+                let request = new Request(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                let result = await fetch(request);
+                clearTimeout(timeoutId);
+                console.log(result);
+                let response = await result.json();
+                if (!timeout) {
+                    onSuccess(response);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="panel">
+            <div class="small-column">
+                <input class="small-column-element" id="input"/>
+                <br>
+                <input class="small-column-element" type="button" value="Show vector" onclick="showVector()"/>
+                <br>
+                <input class="small-column-element" type="button" value="Show similar words" onclick="showSimilarWords()"/>
+            </div>
+            <div class="column-gap">
+                <div></div>
+            </div>
+            <div>
+                <textarea id="result"></textarea>
+            </div>
+        </div>
+        <div class="equation">
+            <input class="equation-element" id="start"/>
+            <label class="equation-label">-</label>
+            <input class="equation-element" id="toSubtract"/>
+            <label class="equation-label">+</label>
+            <input class="equation-element" id="toAdd"/>
+        </div>
+        <div class="equation-button-div">
+            <input class="equation-button" type="button" value="=" onclick="calculateAndShowResult()"/>
+        </div>
+        <table>
+            <tr>
+                <th>Word</th>
+                <th>Cosine Similarity</th>
+                <th>Word</th>
+                <th>Cosine Similarity</th>
+            </tr>
+            <tr>
+                <td><label class="small-label" id="word1"></label></td>
+                <td><label class="small-label" id="distance1"></label></td>
+                <td><label class="small-label" id="word2"></label></td>
+                <td><label class="small-label" id="distance2"></label></td>
+            </tr>
+            <tr>
+                <td><label class="small-label" id="word3"></label></td>
+                <td><label class="small-label" id="distance3"></label></td>
+                <td><label class="small-label" id="word4"></label></td>
+                <td><label class="small-label" id="distance4"></label></td>
+            </tr>
+            <tr>
+                <td><label class="small-label" id="word5"></label></td>
+                <td><label class="small-label" id="distance5"></label></td>
+                <td><label class="small-label" id="word6"></label></td>
+                <td><label class="small-label" id="distance6"></label></td>
+            </tr>
+            <tr>
+                <td><label class="small-label" id="word7"></label></td>
+                <td><label class="small-label" id="distance7"></label></td>
+                <td><label class="small-label" id="word8"></label></td>
+                <td><label class="small-label" id="distance8"></label></td>
+            </tr>
+            <tr>
+                <td><label class="small-label" id="word9"></label></td>
+                <td><label class="small-label" id="distance9"></label></td>
+                <td><label class="small-label" id="word10"></label></td>
+                <td><label class="small-label" id="distance10"></label></td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,119 @@
+package com.balarawool.vectordb.example3;
+
+import com.balarawool.vectordb.db.CosineSimilarityCalculator;
+import com.balarawool.vectordb.db.VectorDB;
+import com.balarawool.vectordb.db.VectorUtil;
+import com.balarawool.vectordb.example2.RgbColors;
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.word2vec.Word2Vec;
+import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
+import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
+import org.nd4j.common.io.ClassPathResource;
+import org.nd4j.shade.guava.io.Files;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
+
+public class WikiWord2Vec {
+    private static int K = 10;
+
+    private static VectorDB<String, double[]> vdb = null;
+
+    public record Embedding(String word, double[] vector) { }
+    public static Embedding embedding(String word) throws IOException {
+        if (vdb == null) {
+            initializeDb();
+        }
+        var entry = vdb.selectByData(word);
+        return new Embedding(word, entry.getKey());
+    }
+
+    public record Entry(String word, double distance) { }
+    public static List<Entry> nearestNeighbours(String word) throws IOException {
+        if (vdb == null) {
+            initializeDb();
+        }
+        return vdb.kNearestNeighbours(vdb.selectByData(word).getKey(), K, new CosineSimilarityCalculator<>())
+                .stream()
+                .map(t -> new Entry(t.entry().getValue(), t.distance()))
+                .toList();
+    }
+
+    public static List<Entry> equation(String start, String toSubtract, String toAdd) throws IOException {
+        if (vdb == null) {
+            initializeDb();
+        }
+
+        var vectorStart = vdb.selectByData(start).getKey();
+        var vectorToSubtract = vdb.selectByData(toSubtract).getKey();
+        var vectorToAdd = vdb.selectByData(toAdd).getKey();
+        var vectorDiff = VectorUtil.subtract(vectorStart, vectorToSubtract);
+        var vector = VectorUtil.add(vectorDiff, vectorToAdd);
+        return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator<>())
+                .stream()
+                .map(t -> new Entry(t.entry().getValue(), t.distance()))
+                .toList();
+    }
+
+    private static void initializeDb() throws IOException {
+        vdb = VectorDB.create();
+        var vectorFile = new File("/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt");
+        if (!vectorFile.exists()) {
+            createAndStoreVectors();
+        }
+        for (var line: Files.readLines(vectorFile, Charset.defaultCharset())) {
+            var strs = line.split(" ");
+            if (strs.length > 3) {
+                var word = strs[0];
+                var vector = new double[strs.length - 1];
+                for (int i = 1; i < strs.length; i++) {
+                    vector[i - 1] = Double.parseDouble(strs[i]);
+                }
+                vdb.insert(word, vector);
+            }
+        }
+    }
+
+    private static void createAndStoreVectors() throws IOException {
+        // Gets Path to Text file
+        String filePath = new ClassPathResource("data/wiki_4pages.txt").getFile().getAbsolutePath();
+
+        System.out.println("Load & Vectorize Sentences....");
+        // Strip white space before and after for each line
+        SentenceIterator iter = new BasicLineIterator(filePath);
+        // Split on white spaces in the line to get words
+        TokenizerFactory t = new DefaultTokenizerFactory();
+
+        /*
+            CommonPreprocessor will apply the following regex to each token: [\d\.:,"'\(\)\[\]|/?!;]+
+            So, effectively all numbers, punctuation symbols and some special symbols are stripped off.
+            Additionally it forces lower case for all tokens.
+         */
+        t.setTokenPreProcessor(new CommonPreprocessor());
+
+        System.out.println("Building model....");
+        Word2Vec vec = new Word2Vec.Builder()
+                .minWordFrequency(5)
+                .iterations(1)
+                .layerSize(100)
+                .seed(42)
+                .windowSize(5)
+                .iterate(iter)
+                .tokenizerFactory(t)
+                .build();
+
+        System.out.println("Fitting Word2Vec model....");
+        vec.fit();
+
+        System.out.println("Writing word vectors to text file....");
+
+        // Write word vectors to file
+        WordVectorSerializer.writeWordVectors(vec, "/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt");
+    }
+}

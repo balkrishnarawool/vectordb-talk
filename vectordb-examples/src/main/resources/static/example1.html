@@ -1,0 +1,183 @@
+<html>
+    <head>
+        <style>
+            .big-div {
+                width: 400px;
+                height: 400px;
+                display: flex;
+                flex-direction: row;
+            }
+            .column {
+              width: 120px;
+              height: 400px;
+              border: 0.2px solid black;
+            }
+            .big-column {
+              width: 200px;
+              height: 400px;
+            }
+            .small-column {
+              width: 80px;
+              height: 400px;
+            }
+            div {
+              width: 120px;
+              height: 40px;
+            }
+            label {
+              display: flex;
+              align-items: center;
+              font-size: 16px;
+              padding-left: 20px;
+            }
+            .selected-color {
+              width: 240px;
+              height: 40px;
+              display: flex;
+              flex-direction: row;
+            }
+            .color {
+              width: 120px;
+              height: 40px;
+              border: 0.2px solid black;
+            }
+            .hex-code {
+              width: 80px;
+              height: 40px;
+            }
+            .vector {
+              width: 40px;
+              height: 40px;
+            }
+            .similar-color {
+              width: 280px;
+              height: 40px;
+              display: flex;
+              flex-direction: row;
+            }
+            .distance {
+              width: 40px;
+              height: 40px;
+            }
+        </style>
+        <script type="text/javascript">
+            function selectColor(color) {
+                document.getElementById('selectedColor').style.background = color;
+                document.getElementById('selectedColorHex').innerHTML = color;
+                let code = color.substring(1);
+                fetchWithTimeout(
+                    '/gray-colors/nearest-neighbours?color='+code,
+                    (response) => { updateSimilarColors(response); },
+                    () => { alert('Error retrieving similar colors!'); },
+                );
+            }
+            function updateSimilarColors(response) {
+                document.getElementById('selectedColorVector').innerHTML = response.similar1.vector;
+
+                document.getElementById('similar1').style.background = '#' + response.similar1.code;
+                document.getElementById('similar1Hex').innerHTML = '#' + response.similar1.code;
+                document.getElementById('similar1Vector').innerHTML = response.similar1.vector;
+                document.getElementById('similar1Distance').innerHTML = response.similar1.distance;
+
+                document.getElementById('similar2').style.background = '#' + response.similar2.code;
+                document.getElementById('similar2Hex').innerHTML = '#' + response.similar2.code;
+                document.getElementById('similar2Vector').innerHTML = response.similar2.vector;
+                document.getElementById('similar2Distance').innerHTML = response.similar2.distance;
+
+                document.getElementById('similar3').style.background = '#' + response.similar3.code;
+                document.getElementById('similar3Hex').innerHTML = '#' + response.similar3.code;
+                document.getElementById('similar3Vector').innerHTML = response.similar3.vector;
+                document.getElementById('similar3Distance').innerHTML = response.similar3.distance;
+            }
+            async function fetchWithTimeout(url, onSuccess, onError) {
+                var timeout = false;
+                let timeoutId = setTimeout(() => {
+                    timeout = true;
+                    onError();
+                }, 2000);
+                let headers = new Headers([
+                    ['Content-Type', 'application/json'],
+                    ['Accept', 'application/json']
+                ]);
+                let request = new Request(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                let result = await fetch(request);
+                clearTimeout(timeoutId);
+                console.log(result);
+                let response = await result.json();
+                if (!timeout) {
+                    onSuccess(response);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <div class="big-div">
+            <div class="column">
+                <div id="color0" style="background-color:#ffffff;" onclick="selectColor('#ffffff')"></div>
+                <div id="color1" style="background-color:#eeeeee;" onclick="selectColor('#eeeeee')"></div>
+                <div id="color2" style="background-color:#dddddd;" onclick="selectColor('#dddddd')"></div>
+                <div id="color3" style="background-color:#cccccc;" onclick="selectColor('#cccccc')"></div>
+                <div id="color4" style="background-color:#aaaaaa;" onclick="selectColor('#aaaaaa')"></div>
+                <div id="color5" style="background-color:#999999;" onclick="selectColor('#999999')"></div>
+                <div id="color6" style="background-color:#777777;" onclick="selectColor('#777777')"></div>
+                <div id="color7" style="background-color:#555555;" onclick="selectColor('#555555')"></div>
+                <div id="color8" style="background-color:#333333;" onclick="selectColor('#333333')"></div>
+                <div id="color9" style="background-color:#000000;" onclick="selectColor('#000000')"></div>
+            </div>
+            <div class="small-column">
+                <div><label>#ffffff</label></div>
+                <div><label>#eeeeee</label></div>
+                <div><label>#dddddd</label></div>
+                <div><label>#cccccc</label></div>
+                <div><label>#aaaaaa</label></div>
+                <div><label>#999999</label></div>
+                <div><label>#777777</label></div>
+                <div><label>#555555</label></div>
+                <div><label>#333333</label></div>
+                <div><label>#000000</label></div>
+            </div>
+            <div class="small-column">
+                <div><label>[0]</label></div>
+                <div><label>[1]</label></div>
+                <div><label>[2]</label></div>
+                <div><label>[3]</label></div>
+                <div><label>[4]</label></div>
+                <div><label>[5]</label></div>
+                <div><label>[6]</label></div>
+                <div><label>[7]</label></div>
+                <div><label>[8]</label></div>
+                <div><label>[9]</label></div>
+            </div>
+            <div class="big-column">
+                <div><label style="padding-left: 0px; padding-top: 10px;">Selected color:</label></div>
+                <div class="selected-color">
+                    <div id="selectedColor" class="color"></div>
+                    <div class="hex-code"><label id="selectedColorHex"></label></div>
+                    <div class="vector"><label id="selectedColorVector"></label></div>
+                </div>
+                <div><label style="padding-left: 0px; padding-top: 10px;">Similar colors:</label></div>
+                <div class="similar-color">
+                    <div id="similar1" class="color"></div>
+                    <div class="hex-code"><label id="similar1Hex"></label></div>
+                    <div class="vector"><label id="similar1Vector"></label></div>
+                    <div class="distance"><label id="similar1Distance"></label></div>
+                </div>
+                <div class="similar-color">
+                    <div id="similar2" class="color"></div>
+                    <div class="hex-code"><label id="similar2Hex"></label></div>
+                    <div class="vector"><label id="similar2Vector"></label></div>
+                    <div class="distance"><label id="similar2Distance"></label></div>
+                </div>
+                <div class="similar-color">
+                    <div id="similar3" class="color"><label></label></div>
+                    <div class="hex-code"><label id="similar3Hex"></label></div>
+                    <div class="vector"><label id="similar3Vector"></label></div>
+                    <div class="distance"><label id="similar3Distance"></label></div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

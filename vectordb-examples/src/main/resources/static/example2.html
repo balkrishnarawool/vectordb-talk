@@ -1,0 +1,231 @@
+<html>
+    <head>
+        <style>
+            .selected-color {
+              width: 370px;
+              height: 40px;
+              border: 0.1px solid black;
+            }
+            .panel {
+                width: 370px;
+                height: 60px;
+                display: flex;
+                flex-direction: row;
+            }
+            .color-buttons {
+                width: 120px;
+                height: 60px;
+                display: flex;
+                flex-direction: row;
+            }
+            .color-button-column {
+                width: 40px;
+                height: 60px;
+            }
+            .color-button {
+                width: 40px;
+                height: 30px;
+            }
+            .rgb-text {
+                width: 250px;
+                height: 60px;
+            }
+            label {
+              display: flex;
+              align-items: center;
+              font-size: 20px;
+              padding-left: 10px;
+            }
+            .small-label {
+              display: flex;
+              align-items: center;
+              font-size: 10px;
+            }
+            table, th, td {
+              border: 1px solid black;
+            }
+            th, td {
+              font-size: 10px;
+            }
+            td {
+              padding-left: 10px;
+              width: 100px;
+            }
+            .color {
+              width: 100px;
+              height: 20px;
+              border: 0.1px solid black;
+            }
+        </style>
+        <script type="text/javascript">
+            var r=255,g=255,b=255;
+            function setRGB() {
+                r = 255;
+                g = 255;
+                b = 255;
+            }
+            function increaseR() {
+                r = r+16 > 255 ? 255 : r+16;
+                updateView();
+            }
+             function decreaseR() {
+                r = r-16 < 0 ? -1 : r-16;
+                updateView();
+            }
+            function increaseG() {
+                g = g+16 > 255 ? 255 : g+16;
+                updateView();
+            }
+             function decreaseG() {
+                g = g-16 < 0 ? -1 : g-16;
+                updateView();
+            }
+            function increaseB() {
+                b = b+16 > 255 ? 255 : b+16;
+                updateView();
+            }
+             function decreaseB() {
+                b = b-16 < 0 ? -1 : b-16;
+                updateView();
+            }
+            function updateView() {
+                document.getElementById('rgbLabel').innerHTML = '[R='+(r==-1?0:r)+',G='+(g==-1?0:g)+',B='+(b==-1?0:b)+']';
+                document.getElementById('vector').innerHTML = '['+(r==-1?0:r)+','+(g==-1?0:g)+','+(b==-1?0:b)+']';
+                document.getElementById('selected-color').style.background = 'rgb('+(r==-1?0:r)+','+(g==-1?0:g)+','+(b==-1?0:b)+')';
+            }
+            function showSimilarColors() {
+                fetchWithTimeout(
+                    '/rgb-colors/nearest-neighbours?r='+r+'&g='+g+'&b='+b,
+                    (response) => { updateSimilarColors(response); },
+                    () => { alert('Error retrieving similar colors!'); },
+                );
+            }
+            function updateSimilarColors(response) {
+                document.getElementById('color1').style.background = response.similar1.code;
+                document.getElementById('vector1').innerHTML = response.similar1.vector;
+                document.getElementById('distance1').innerHTML = response.similar1.distance;
+
+                document.getElementById('color2').style.background = response.similar2.code;
+                document.getElementById('vector2').innerHTML = response.similar2.vector;
+                document.getElementById('distance2').innerHTML = response.similar2.distance;
+
+                document.getElementById('color3').style.background = response.similar3.code;
+                document.getElementById('vector3').innerHTML = response.similar3.vector;
+                document.getElementById('distance3').innerHTML = response.similar3.distance;
+
+                document.getElementById('color4').style.background = response.similar4.code;
+                document.getElementById('vector4').innerHTML = response.similar4.vector;
+                document.getElementById('distance4').innerHTML = response.similar4.distance;
+
+                document.getElementById('color5').style.background = response.similar5.code;
+                document.getElementById('vector5').innerHTML = response.similar5.vector;
+                document.getElementById('distance5').innerHTML = response.similar5.distance;
+
+                document.getElementById('color6').style.background = response.similar6.code;
+                document.getElementById('vector6').innerHTML = response.similar6.vector;
+                document.getElementById('distance6').innerHTML = response.similar6.distance;
+
+                document.getElementById('color7').style.background = response.similar7.code;
+                document.getElementById('vector7').innerHTML = response.similar7.vector;
+                document.getElementById('distance7').innerHTML = response.similar7.distance;
+            }
+            async function fetchWithTimeout(url, onSuccess, onError) {
+                var timeout = false;
+                let timeoutId = setTimeout(() => {
+                    timeout = true;
+                    onError();
+                }, 2000);
+                let headers = new Headers([
+                    ['Content-Type', 'application/json'],
+                    ['Accept', 'application/json']
+                ]);
+                let request = new Request(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                let result = await fetch(request);
+                clearTimeout(timeoutId);
+                console.log(result);
+                let response = await result.json();
+                if (!timeout) {
+                    onSuccess(response);
+                }
+            }
+        </script>
+    </head>
+    <body onload="updateView()">
+        <div class="selected-color" id="selected-color">
+            <div></div>
+        </div>
+        <p/>
+        <div class="panel">
+            <div class="color-buttons">
+                <div class="button-column">
+                    <div class="color-button"><input type="button" value="R+" onclick="increaseR()"/></div>
+                    <div class="color-button"><input type="button" value="R-" onclick="decreaseR()"/></div>
+                </div>
+                <div class="color-button-column">
+                    <div class="color-button"><input type="button" value="G+" onclick="increaseG()"/></div>
+                    <div class="color-button"><input type="button" value="G-" onclick="decreaseG()"/></div>
+                </div>
+                <div class="button-column">
+                    <div class="color-button"><input type="button" value="B+" onclick="increaseB()"/></div>
+                    <div class="color-button"><input type="button" value="B-" onclick="decreaseB()"/></div>
+                </div>
+            </div>
+            <div class="rgb-text">
+                <label id="rgbLabel"></label>
+                <label id="vector"></label>
+            </div>
+        </div>
+        <div>
+            <input style="width: 370px" type="button" value="Show similar colors" onclick="showSimilarColors()"/>
+        </div>
+        <p/>
+        <div>
+            <table>
+                <tr>
+                    <th>Color</th>
+                    <th>Vector</th>
+                    <th>Cosine Similarity</th>
+                </tr>
+                <tr>
+                    <td><div id="color1" class="color"></div></td>
+                    <td><label class="small-label" id="vector1"></label></td>
+                    <td><label class="small-label" id="distance1"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color2" class="color"></div></td>
+                    <td><label class="small-label" id="vector2"></label></td>
+                    <td><label class="small-label" id="distance2"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color3" class="color"></div></td>
+                    <td><label class="small-label" id="vector3"></label></td>
+                    <td><label class="small-label" id="distance3"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color4" class="color"></div></td>
+                    <td><label class="small-label" id="vector4"></label></td>
+                    <td><label class="small-label" id="distance4"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color5" class="color"></div></td>
+                    <td><label class="small-label" id="vector5"></label></td>
+                    <td><label class="small-label" id="distance5"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color6" class="color"></div></td>
+                    <td><label class="small-label" id="vector6"></label></td>
+                    <td><label class="small-label" id="distance6"></label></td>
+                </tr>
+                <tr>
+                    <td><div id="color7" class="color"></div></td>
+                    <td><label class="small-label" id="vector7"></label></td>
+                    <td><label class="small-label" id="distance7"></label></td>
+                </tr>
+            </table>
+        </div>
+
+    </body>
+</html>
