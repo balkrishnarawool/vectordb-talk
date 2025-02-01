@@ -4,7 +4,8 @@ The talk is done with 2 different titles:
 - The Mathemagic of Vector Databases
 - Making Sense of Vector Databases
 
-This talk creates a tiny Vector Database using Java's Vector API.
+This talk creates a tiny Vector Database using Java's Vector API. [Tiny Vector DB](vectordb-examples/src/main/java/com/balarawool/vectordb/db/VectorDB.java)
+
 It introduces vectors with their mathematical representation and adds several concepts to it.
 While doing that it shows various exmaples with increasing complexity which include these concpets.
 
