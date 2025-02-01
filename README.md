@@ -1,4 +1,4 @@
-# Intro
+# Introduction
 This is source repo for may talk on vector databases.
 The talk is done with 2 different titles:
 - The Mathemagic of Vector Databases
