@@ -1,8 +1,8 @@
 # Intro
 This is source repo for may talk on vector databases.
 The talk is done with 2 different titles:
-- Making Sense of Vector Databases
 - The Mathemagic of Vector Databases
+- Making Sense of Vector Databases
 
 This talk creates a tiny Vector Database using Java's Vector API.
 It introduces vectors with their mathematical representation and adds several concepts to it.
@@ -16,3 +16,5 @@ Here's a list of exmaples discussed here:
 - Example 5: [RAG](vectordb-examples/src/main/java/com/balarawool/vectordb/example5/EpicComicController.java)
 - Example 6: [img2vec Embeddings](vectordb-examples/src/main/java/com/balarawool/vectordb/example6/FroogleSearchController.java)
 - Example 7: [Surprise!](vectordb-examples/src/main/java/com/balarawool/vectordb/example7/CelebritySearchController.java) 
+
+For any questions reach out to me here: [@balarawool.bsky.social](https://bsky.app/profile/balarawool.bsky.social)
