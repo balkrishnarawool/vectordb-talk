@@ -9,7 +9,7 @@ This talk creates a tiny Vector Database using Java's Vector API. [Tiny Vector D
 It introduces vectors with their mathematical representation and adds several concepts to it.
 While doing that it shows various exmaples with increasing complexity which include these concpets.
 
-Here's a list of exmaples discussed here:
+Here's a list of exmaples discussed:
 - Example 1: [Simple vectors: Grayscale colors](vectordb-examples/src/main/java/com/balarawool/vectordb/example1/GrayController.java)
 - Example 2: [Cosine Similarity: RGB colors](vectordb-examples/src/main/java/com/balarawool/vectordb/example2/RgbController.java)
 - Example 3: [word2vec Embeddings](vectordb-examples/src/main/java/com/balarawool/vectordb/example3/WikiController.java)
