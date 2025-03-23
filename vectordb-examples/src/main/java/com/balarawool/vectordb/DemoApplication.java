@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+///
+/// Don't forget --add-modules jdk.incubator.vector
 @SpringBootApplication
 public class DemoApplication {
 
