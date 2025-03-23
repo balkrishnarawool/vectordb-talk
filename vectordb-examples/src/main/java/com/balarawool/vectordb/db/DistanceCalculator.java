@@ -1,10 +1,5 @@
 package com.balarawool.vectordb.db;
 
-import jdk.incubator.vector.IntVector;
-import jdk.incubator.vector.VectorSpecies;
-
-import java.util.Arrays;
-
-public interface DistanceCalculator<T> {
-    double distance(T vector1, T vector2);
+public interface DistanceCalculator<V extends Vector> {
+    double distance(V vector1, V vector2);
 }

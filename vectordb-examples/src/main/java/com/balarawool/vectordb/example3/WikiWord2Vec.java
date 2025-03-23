@@ -1,6 +1,7 @@
 package com.balarawool.vectordb.example3;
 
 import com.balarawool.vectordb.db.CosineSimilarityCalculator;
+import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
 import com.balarawool.vectordb.db.VectorUtil;
 import com.balarawool.vectordb.example2.RgbColors;
@@ -23,7 +24,7 @@ import java.util.List;
 public class WikiWord2Vec {
     private static int K = 10;
 
-    private static VectorDB<String, double[]> vdb = null;
+    private static VectorDB<String, Vector.Double> vdb = null;
 
     public record Embedding(String word, double[] vector) { }
     public static Embedding embedding(String word) throws IOException {
@@ -31,7 +32,7 @@ public class WikiWord2Vec {
             initializeDb();
         }
         var entry = vdb.selectByData(word);
-        return new Embedding(word, entry.getKey());
+        return new Embedding(word, entry.getKey().embedding());
     }
 
     public record Entry(String word, double distance) { }
@@ -53,8 +54,8 @@ public class WikiWord2Vec {
         var vectorStart = vdb.selectByData(start).getKey();
         var vectorToSubtract = vdb.selectByData(toSubtract).getKey();
         var vectorToAdd = vdb.selectByData(toAdd).getKey();
-        var vectorDiff = VectorUtil.subtract(vectorStart, vectorToSubtract);
-        var vector = VectorUtil.add(vectorDiff, vectorToAdd);
+        var vectorDiff = VectorUtil.subtract(vectorStart.embedding(), vectorToSubtract.embedding());
+        var vector = new Vector.Double(VectorUtil.add(vectorDiff, vectorToAdd.embedding()));
         return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator<>())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
@@ -71,11 +72,11 @@ public class WikiWord2Vec {
             var strs = line.split(" ");
             if (strs.length > 3) {
                 var word = strs[0];
-                var vector = new double[strs.length - 1];
+                var embedding = new double[strs.length - 1];
                 for (int i = 1; i < strs.length; i++) {
-                    vector[i - 1] = Double.parseDouble(strs[i]);
+                    embedding[i - 1] = Double.parseDouble(strs[i]);
                 }
-                vdb.insert(word, vector);
+                vdb.insert(word, new Vector.Double(embedding));
             }
         }
     }
