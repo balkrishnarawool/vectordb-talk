@@ -1,6 +1,7 @@
 package com.balarawool.vectordb.example1;
 
 import com.balarawool.vectordb.db.OneDimensionDistanceCalculator;
+import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
 
 import java.util.Arrays;
@@ -10,7 +11,7 @@ public class GrayColors {
     private static int K = 3;
     private static List<String> COLORS = List.of("ffffff", "eeeeee", "dddddd", "cccccc", "aaaaaa",
                                                  "999999", "777777", "555555", "333333", "000000");
-    private static VectorDB<String, int[]> vdb = null;
+    private static VectorDB<String, Vector.Int> vdb = null;
 
     private static void initializeDb() {
         vdb = VectorDB.create();
@@ -19,9 +20,9 @@ public class GrayColors {
         }
     }
 
-    public static int[] embed(String hexColor){
+    public static Vector.Int embed(String hexColor){
         for (int i = 0; i < COLORS.size(); i++) {
-            if (COLORS.get(i).equals(hexColor)) return new int[]{i};
+            if (COLORS.get(i).equals(hexColor)) return new Vector.Int(new int[]{i});
         }
         throw new IllegalStateException(String.format("Embedding for this hex color-code %s is not supported", hexColor));
     }
@@ -34,9 +35,9 @@ public class GrayColors {
         }
         var list = vdb.kNearestNeighbours(embed(color), K, new OneDimensionDistanceCalculator<>());
         return new ThreeColors(
-                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey()), list.get(0).distance()),
-                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey()), list.get(1).distance()),
-                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey()), list.get(2).distance())
+                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),
+                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).distance()),
+                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey().embedding()), list.get(2).distance())
         );
     }
 }

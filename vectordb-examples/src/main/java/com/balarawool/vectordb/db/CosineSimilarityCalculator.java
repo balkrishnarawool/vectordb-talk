@@ -1,17 +1,16 @@
 package com.balarawool.vectordb.db;
 
 import jdk.incubator.vector.DoubleVector;
-import jdk.incubator.vector.IntVector;
 import jdk.incubator.vector.VectorSpecies;
 
 import java.util.Arrays;
 
-public class CosineSimilarityCalculator<T> implements DistanceCalculator<T>{
-    public double distance(T vector1, T vector2) {
-        if (vector1 instanceof double[] v1 && vector2 instanceof double[] v2) {
-            if (v1.length != v2.length)
-                throw new IllegalStateException(String.format("The sizes of two vectors being processed are not same. One is %s and other is %s.", v1.length, v2.length));
-            return dotProduct(v1, v2) / (magnitude(v1) * magnitude(v2));
+public class CosineSimilarityCalculator<V extends Vector> implements DistanceCalculator<V>{
+    public double distance(V vector1, V vector2) {
+        if (vector1 instanceof Vector.Double(double[] embedding1) && vector2 instanceof Vector.Double(double[] embedding2)) {
+            if (embedding1.length != embedding2.length)
+                throw new IllegalStateException(String.format("The sizes of two vectors being processed are not same. One is %s and other is %s.", embedding1.length, embedding2.length));
+            return dotProduct(embedding1, embedding2) / (magnitude(embedding1) * magnitude(embedding2));
         }
         throw new IllegalStateException("Unsupported vector type. Only supported type of vectors is double[]");
     }
