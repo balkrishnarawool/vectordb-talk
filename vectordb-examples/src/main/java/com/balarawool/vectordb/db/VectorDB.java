@@ -39,21 +39,23 @@ public class VectorDB<D, V extends Vector> {
         return db.entrySet();
     }
 
-    public Map.Entry<V, D> selectByVector(V vector) {
+    public D selectByVector(V vector) {
         return db.entrySet().stream()
                 .filter(e -> e.getKey().equals(vector))
                 .findFirst()
+                .map(Map.Entry::getValue)
                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for vector %s", vector)));
     }
 
-    public Map.Entry<V, D> selectByData(D data) {
+    public V selectByData(D data) {
         return db.entrySet().stream()
                 .filter(e -> e.getValue().equals(data))
                 .findFirst()
+                .map(Map.Entry::getKey)
                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for data %s", data)));
     }
 
-    public record Tuple<T extends Vector, D>(Map.Entry<T, D> entry, double distance) { }
+    public record Tuple<V extends Vector, D>(Map.Entry<V, D> entry, double distance) { }
     public List<Tuple<V, D>> kNearestNeighbours(V vector, int k, DistanceCalculator<V> distanceCalculator){
         return db.entrySet().stream()
                 .map(e -> new Tuple<>(e, distance(vector, e.getKey(), distanceCalculator)))

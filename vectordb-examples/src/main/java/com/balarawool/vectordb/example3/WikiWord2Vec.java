@@ -4,7 +4,6 @@ import com.balarawool.vectordb.db.CosineSimilarityCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
 import com.balarawool.vectordb.db.VectorUtil;
-import com.balarawool.vectordb.example2.RgbColors;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
@@ -31,8 +30,8 @@ public class WikiWord2Vec {
         if (vdb == null) {
             initializeDb();
         }
-        var entry = vdb.selectByData(word);
-        return new Embedding(word, entry.getKey().embedding());
+        var vector = vdb.selectByData(word);
+        return new Embedding(word, vector.embedding());
     }
 
     public record Entry(String word, double distance) { }
@@ -40,7 +39,7 @@ public class WikiWord2Vec {
         if (vdb == null) {
             initializeDb();
         }
-        return vdb.kNearestNeighbours(vdb.selectByData(word).getKey(), K, new CosineSimilarityCalculator<>())
+        return vdb.kNearestNeighbours(vdb.selectByData(word), K, new CosineSimilarityCalculator<>())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
                 .toList();
@@ -51,9 +50,9 @@ public class WikiWord2Vec {
             initializeDb();
         }
 
-        var vectorStart = vdb.selectByData(start).getKey();
-        var vectorToSubtract = vdb.selectByData(toSubtract).getKey();
-        var vectorToAdd = vdb.selectByData(toAdd).getKey();
+        var vectorStart = vdb.selectByData(start);
+        var vectorToSubtract = vdb.selectByData(toSubtract);
+        var vectorToAdd = vdb.selectByData(toAdd);
         var vectorDiff = VectorUtil.subtract(vectorStart.embedding(), vectorToSubtract.embedding());
         var vector = new Vector.Double(VectorUtil.add(vectorDiff, vectorToAdd.embedding()));
         return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator<>())
