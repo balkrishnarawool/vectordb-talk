@@ -1,0 +1,1 @@
+query { Get { WonderImage(limit:1) {image, text} } }
