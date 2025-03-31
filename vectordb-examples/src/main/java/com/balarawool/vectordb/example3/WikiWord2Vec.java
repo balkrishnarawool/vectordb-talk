@@ -22,6 +22,9 @@ import java.util.List;
 
 public class WikiWord2Vec {
     private static int K = 10;
+    private static final String VECTOR_FILE = "/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt";
+    private static final String DATA_FILE = "data/wiki_4pages.txt";
+
 
     private static VectorDB<String, Vector.Double> vdb = null;
 
@@ -63,7 +66,7 @@ public class WikiWord2Vec {
 
     private static void initializeDb() throws IOException {
         vdb = VectorDB.create();
-        var vectorFile = new File("/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt");
+        var vectorFile = new File(VECTOR_FILE);
         if (!vectorFile.exists()) {
             createAndStoreVectors();
         }
@@ -82,7 +85,7 @@ public class WikiWord2Vec {
 
     private static void createAndStoreVectors() throws IOException {
         // Gets Path to Text file
-        String filePath = new ClassPathResource("data/wiki_4pages.txt").getFile().getAbsolutePath();
+        String filePath = new ClassPathResource(DATA_FILE).getFile().getAbsolutePath();
 
         System.out.println("Load & Vectorize Sentences....");
         // Strip white space before and after for each line
@@ -114,6 +117,6 @@ public class WikiWord2Vec {
         System.out.println("Writing word vectors to text file....");
 
         // Write word vectors to file
-        WordVectorSerializer.writeWordVectors(vec, "/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt");
+        WordVectorSerializer.writeWordVectors(vec, VECTOR_FILE);
     }
 }
