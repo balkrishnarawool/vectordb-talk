@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class RgbColors {
     private static int K = 7;
 
-    private static VectorDB<String, Vector.Double> vdb = null;
+    private static VectorDB<String> vdb = null;
 
     private static void initializeDb() {
         vdb = VectorDB.create();
@@ -26,10 +26,10 @@ public class RgbColors {
         }
     }
 
-    public static Vector.Double embed(double r, double g, double b){
+    public static Vector embed(double r, double g, double b){
         // normalize the vector
         double v = Math.sqrt(r*r + g*g + b*b);
-        return new Vector.Double(new double[]{r/v, g/v, b/v});
+        return new Vector(new double[]{r/v, g/v, b/v});
     }
 
     public record SevenColors(Color similar1, Color similar2, Color similar3, Color similar4, Color similar5, Color similar6, Color similar7) { }
@@ -38,7 +38,7 @@ public class RgbColors {
         if (vdb == null) {
             initializeDb();
         }
-        var list = vdb.kNearestNeighbours(embed(r/256d,g/256d,b/256d), K, new CosineSimilarityCalculator<>());
+        var list = vdb.kNearestNeighbours(embed(r/256d,g/256d,b/256d), K, new CosineSimilarityCalculator());
         return new SevenColors(
                 new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),
                 new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).distance()),

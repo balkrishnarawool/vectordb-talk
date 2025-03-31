@@ -26,7 +26,7 @@ public class WikiWord2Vec {
     private static final String DATA_FILE = "data/wiki_4pages.txt";
 
 
-    private static VectorDB<String, Vector.Double> vdb = null;
+    private static VectorDB<String> vdb = null;
 
     public record Embedding(String word, double[] vector) { }
     public static Embedding embedding(String word) throws IOException {
@@ -42,7 +42,7 @@ public class WikiWord2Vec {
         if (vdb == null) {
             initializeDb();
         }
-        return vdb.kNearestNeighbours(vdb.selectByData(word), K, new CosineSimilarityCalculator<>())
+        return vdb.kNearestNeighbours(vdb.selectByData(word), K, new CosineSimilarityCalculator())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
                 .toList();
@@ -57,8 +57,8 @@ public class WikiWord2Vec {
         var vectorToSubtract = vdb.selectByData(toSubtract);
         var vectorToAdd = vdb.selectByData(toAdd);
         var vectorDiff = VectorUtil.subtract(vectorStart.embedding(), vectorToSubtract.embedding());
-        var vector = new Vector.Double(VectorUtil.add(vectorDiff, vectorToAdd.embedding()));
-        return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator<>())
+        var vector = new Vector(VectorUtil.add(vectorDiff, vectorToAdd.embedding()));
+        return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
                 .toList();
@@ -78,7 +78,7 @@ public class WikiWord2Vec {
                 for (int i = 1; i < strs.length; i++) {
                     embedding[i - 1] = Double.parseDouble(strs[i]);
                 }
-                vdb.insert(word, new Vector.Double(embedding));
+                vdb.insert(word, new Vector(embedding));
             }
         }
     }

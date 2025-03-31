@@ -5,14 +5,15 @@ import jdk.incubator.vector.VectorSpecies;
 
 import java.util.Arrays;
 
-public class CosineSimilarityCalculator<V extends Vector> implements DistanceCalculator<V>{
-    public double distance(V vector1, V vector2) {
-        if (vector1 instanceof Vector.Double(double[] embedding1) && vector2 instanceof Vector.Double(double[] embedding2)) {
-            if (embedding1.length != embedding2.length)
-                throw new IllegalStateException(String.format("The sizes of two vectors being processed are not same. One is %s and other is %s.", embedding1.length, embedding2.length));
-            return dotProduct(embedding1, embedding2) / (magnitude(embedding1) * magnitude(embedding2));
+public class CosineSimilarityCalculator implements DistanceCalculator {
+    public double distance(Vector vector1, Vector vector2) {
+        var embedding1 = vector1.embedding();
+        var embedding2 = vector2.embedding();
+
+        if (embedding1.length != embedding2.length) {
+            throw new IllegalStateException(String.format("The sizes of two vectors being processed are not same. One is %s and other is %s.", embedding1.length, embedding2.length));
         }
-        throw new IllegalStateException("Unsupported vector type. Only supported type of vectors is double[]");
+        return dotProduct(embedding1, embedding2) / (magnitude(embedding1) * magnitude(embedding2));
     }
 
     public static double dotProduct(double[] vector1, double[] vector2) {

@@ -18,28 +18,27 @@ import java.util.Set;
 /// - update/delete an existing entry TODO: To be added
 ///
 /// @param <D> - Type of data
-/// @param <V> - Type of vector
-public class VectorDB<D, V extends Vector> {
+public class VectorDB<D> {
 
-    private Map<V, D> db = new HashMap<>();
+    private Map<Vector, D> db = new HashMap<>();
 
     private VectorDB() {
     }
 
-    public static <D, T extends Vector> VectorDB<D, T> create() {
+    public static <D> VectorDB<D> create() {
         return new VectorDB<>();
     }
 
     /// Make sure the embeddings/vectors are unique, otherwise they are overwritten.
-    public void insert(D data, V embedding) {
+    public void insert(D data, Vector embedding) {
         db.put(embedding, data);
     }
 
-    public Set<Map.Entry<V, D>> selectAll() {
+    public Set<Map.Entry<Vector, D>> selectAll() {
         return db.entrySet();
     }
 
-    public D selectByVector(V vector) {
+    public D selectByVector(Vector vector) {
         return db.entrySet().stream()
                 .filter(e -> e.getKey().equals(vector))
                 .findFirst()
@@ -47,7 +46,7 @@ public class VectorDB<D, V extends Vector> {
                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for vector %s", vector)));
     }
 
-    public V selectByData(D data) {
+    public Vector selectByData(D data) {
         return db.entrySet().stream()
                 .filter(e -> e.getValue().equals(data))
                 .findFirst()
@@ -55,8 +54,8 @@ public class VectorDB<D, V extends Vector> {
                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for data %s", data)));
     }
 
-    public record Tuple<V extends Vector, D>(Map.Entry<V, D> entry, double distance) { }
-    public List<Tuple<V, D>> kNearestNeighbours(V vector, int k, DistanceCalculator<V> distanceCalculator){
+    public record Tuple<D>(Map.Entry<Vector, D> entry, double distance) { }
+    public List<Tuple<D>> kNearestNeighbours(Vector vector, int k, DistanceCalculator distanceCalculator){
         return db.entrySet().stream()
                 .map(e -> new Tuple<>(e, distance(vector, e.getKey(), distanceCalculator)))
                 .sorted(sort(distanceCalculator))
@@ -64,15 +63,15 @@ public class VectorDB<D, V extends Vector> {
                 .toList();
     }
 
-    private Comparator<? super Tuple<V,D>> sort(DistanceCalculator<V> distanceCalculator) {
+    private Comparator<? super Tuple<D>> sort(DistanceCalculator distanceCalculator) {
         // This is added because OneDimensionDistanceCalculator values range from 0 to infinity when vectors are most to least similar.
         // For others, they range from 1 to -1 when vectors are most to least similar.
-        return distanceCalculator instanceof OneDimensionDistanceCalculator<V>
+        return distanceCalculator instanceof ScalarDistanceCalculator
                 ? Comparator.comparing(Tuple::distance)
                 : Collections.reverseOrder(Comparator.comparing(Tuple::distance));
     }
 
-    private double distance(V vector1, V vector2, DistanceCalculator<V> distanceCalculator) {
+    private double distance(Vector vector1, Vector vector2, DistanceCalculator distanceCalculator) {
         return distanceCalculator.distance(vector1, vector2);
     }
 }
