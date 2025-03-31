@@ -3,7 +3,6 @@ package com.balarawool.vectordb.example3;
 import com.balarawool.vectordb.db.CosineSimilarityCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
-import com.balarawool.vectordb.db.VectorUtil;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
@@ -17,7 +16,6 @@ import org.nd4j.shade.guava.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.List;
 
 public class WikiWord2Vec {
@@ -56,8 +54,7 @@ public class WikiWord2Vec {
         var vectorStart = vdb.selectByData(start);
         var vectorToSubtract = vdb.selectByData(toSubtract);
         var vectorToAdd = vdb.selectByData(toAdd);
-        var vectorDiff = VectorUtil.subtract(vectorStart.embedding(), vectorToSubtract.embedding());
-        var vector = new Vector(VectorUtil.add(vectorDiff, vectorToAdd.embedding()));
+        var vector = vectorStart.subtract(vectorToSubtract).add(vectorToAdd);
         return vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
