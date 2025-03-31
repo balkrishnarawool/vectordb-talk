@@ -15,7 +15,8 @@ import java.util.Set;
 /// - select all entries
 /// - select specific entry
 /// - select nearest neighbours tuples for a given vector
-/// - update/delete an existing entry TODO: To be added
+/// - delete an existing entry
+/// (Note that update is not a separate method, if you want to update, delete existing entry and insert a new one)
 ///
 /// @param <D> - Type of data
 public class VectorDB<D> {
@@ -52,6 +53,20 @@ public class VectorDB<D> {
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for data %s", data)));
+    }
+
+    /// Deletes given vector and returns corresponding data.
+    public D deleteByVector(Vector vector) {
+        return db.remove(vector);
+    }
+
+    ///  Deletes first data element (and vector) that is same as the input and returns the removed data.
+    public D deleteByData(D data) {
+         var result = db.entrySet().stream()
+                .filter(e -> e.getValue().equals(data))
+                .findFirst();
+         return result.map(e -> db.remove(e.getKey()))
+                 .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for data %s", data)));
     }
 
     public record Tuple<D>(Map.Entry<Vector, D> entry, double distance) { }
