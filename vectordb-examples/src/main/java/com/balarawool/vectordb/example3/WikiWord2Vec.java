@@ -39,7 +39,8 @@ public class WikiWord2Vec {
     }
 
     public record Entry(String word, double distance) { }
-    public List<Entry> nearestNeighbours(String word) throws IOException {
+
+    public List<Entry> nearestNeighbours(String word) {
         return vdb.kNearestNeighbours(vdb.selectByData(word), K, new CosineSimilarityCalculator())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))

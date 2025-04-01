@@ -35,9 +35,20 @@ public class GrayColors {
     public ThreeColors nearestNeighbours(String color){
         var list = vdb.kNearestNeighbours(embed(color), K, new ScalarDistanceCalculator());
         return new ThreeColors(
-                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),
-                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).distance()),
-                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey().embedding()), list.get(2).distance())
+                new Color(list.get(0).entry().getValue(), vectorToString(list.get(0)), list.get(0).distance()),
+                new Color(list.get(1).entry().getValue(), vectorToString(list.get(1)), list.get(1).distance()),
+                new Color(list.get(2).entry().getValue(), vectorToString(list.get(2)), list.get(2).distance())
         );
+    }
+
+    private String vectorToString(VectorDB.Tuple<String> tuple) {
+        return Arrays.toString(toIntArray(tuple.entry().getKey().embedding()));
+    }
+
+    private int[] toIntArray(double[] doubleArray) {
+        final int[] intArray = new int[doubleArray.length];
+        for (int i=0; i<intArray.length; ++i)
+            intArray[i] = (int) doubleArray[i];
+        return intArray;
     }
 }

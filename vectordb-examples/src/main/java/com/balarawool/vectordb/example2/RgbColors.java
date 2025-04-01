@@ -28,17 +28,19 @@ public class RgbColors {
         }
     }
 
-    public static Vector embed(double r, double g, double b){
-        // normalize the vector
-        double v = Math.sqrt(r*r + g*g + b*b);
-        return new Vector(new double[]{r/v, g/v, b/v});
+    private static Vector embed(double r, double g, double b){
+        // double v = Math.sqrt(r*r + g*g + b*b);
+        // return new Vector(new double[]{r/v, g/v, b/v});
+        return new Vector(new double[]{r, g, b}).normalize();
     }
 
     public record SevenColors(Color similar1, Color similar2, Color similar3, Color similar4, Color similar5, Color similar6, Color similar7) { }
     public record Color(String code, String vector, double distance) { }
 
     public SevenColors nearestNeighbours(double r, double g, double b){
-        var list = vdb.kNearestNeighbours(embed(r/256d,g/256d,b/256d), K, new CosineSimilarityCalculator());
+        var vector = RgbColors.embed(r,g,b);
+
+        var list = vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator());
         return new SevenColors(
                 new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),
                 new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).distance()),

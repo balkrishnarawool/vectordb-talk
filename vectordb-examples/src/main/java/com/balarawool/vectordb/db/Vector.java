@@ -100,4 +100,23 @@ public record Vector(double[] embedding) {
         }
         return Math.sqrt(Arrays.stream(result).sum());
     }
+
+    public Vector normalize() {
+        var v = magnitude();
+
+        double[] result = new double[embedding.length];
+        final VectorSpecies<Double> species = DoubleVector.SPECIES_PREFERRED;
+        int length = species.loopBound(result.length);
+        for (int i = 0; i < length; i += species.length()) {
+            DoubleVector va = DoubleVector.fromArray(species, embedding, i);
+            DoubleVector vc = va.div(v);
+            vc.intoArray(result, i);
+        }
+        // Handle remaining elements
+        for (int i = length; i < result.length; i++) {
+            result[i] = embedding[i] / v;
+        }
+
+        return new Vector(result);
+    }
 }
