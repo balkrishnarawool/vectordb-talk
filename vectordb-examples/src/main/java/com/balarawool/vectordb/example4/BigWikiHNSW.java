@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class BigWikiPGVectorHNSW {
-    @Autowired
+public class BigWikiHNSW {
     JdbcTemplate jdbcTemplate;
+
+    public BigWikiHNSW(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public List<String> search(String query) {
         var ollamaApi = new OllamaApi();
