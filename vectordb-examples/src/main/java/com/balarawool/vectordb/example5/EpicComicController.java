@@ -9,8 +9,11 @@ import java.util.List;
 
 @RestController
 public class EpicComicController {
-    @Autowired
     EpicComicStore epicComicStore;
+
+    public EpicComicController(EpicComicStore epicComicStore) {
+        this.epicComicStore = epicComicStore;
+    }
 
     public record Response(String message) { }
     @GetMapping("/epic-support/chat")

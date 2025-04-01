@@ -12,45 +12,41 @@ import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFac
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.common.io.ClassPathResource;
 import org.nd4j.shade.guava.io.Files;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
+@Service
 public class WikiWord2Vec {
     private static int K = 10;
     private static final String VECTOR_FILE = "/Users/TS90XD/dev/java/vectordb/vectordb-talk/vectordb-talk/simple-vectordb-sb/src/main/resources/data/vectors_wiki4_new_v2.txt";
     private static final String DATA_FILE = "data/wiki_4pages.txt";
 
+    private VectorDB<String> vdb = null;
 
-    private static VectorDB<String> vdb = null;
+    public WikiWord2Vec() throws IOException {
+        initializeDb();
+    }
 
     public record Embedding(String word, double[] vector) { }
-    public static Embedding embedding(String word) throws IOException {
-        if (vdb == null) {
-            initializeDb();
-        }
+
+    public Embedding embedding(String word) throws IOException {
         var vector = vdb.selectByData(word);
         return new Embedding(word, vector.embedding());
     }
 
     public record Entry(String word, double distance) { }
-    public static List<Entry> nearestNeighbours(String word) throws IOException {
-        if (vdb == null) {
-            initializeDb();
-        }
+    public List<Entry> nearestNeighbours(String word) throws IOException {
         return vdb.kNearestNeighbours(vdb.selectByData(word), K, new CosineSimilarityCalculator())
                 .stream()
                 .map(t -> new Entry(t.entry().getValue(), t.distance()))
                 .toList();
     }
 
-    public static List<Entry> equation(String start, String toSubtract, String toAdd) throws IOException {
-        if (vdb == null) {
-            initializeDb();
-        }
-
+    public List<Entry> equation(String start, String toSubtract, String toAdd) throws IOException {
         var vectorStart = vdb.selectByData(start);
         var vectorToSubtract = vdb.selectByData(toSubtract);
         var vectorToAdd = vdb.selectByData(toAdd);
@@ -61,7 +57,7 @@ public class WikiWord2Vec {
                 .toList();
     }
 
-    private static void initializeDb() throws IOException {
+    private void initializeDb() throws IOException {
         vdb = VectorDB.create();
         var vectorFile = new File(VECTOR_FILE);
         if (!vectorFile.exists()) {

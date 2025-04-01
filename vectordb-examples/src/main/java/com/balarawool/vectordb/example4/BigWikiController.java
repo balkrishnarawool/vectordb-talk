@@ -10,8 +10,11 @@ import java.util.List;
 
 @RestController
 public class BigWikiController {
-    @Autowired
     BigWikiPGVectorHNSW bigWikiPGVectorHNSW;
+
+    public BigWikiController(BigWikiPGVectorHNSW bigWikiPGVectorHNSW) {
+        this.bigWikiPGVectorHNSW = bigWikiPGVectorHNSW;
+    }
 
     @GetMapping("/big-wiki/search")
     public List<String> search(@RequestParam("query") String query) {

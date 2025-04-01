@@ -3,15 +3,17 @@ package com.balarawool.vectordb.example2;
 import com.balarawool.vectordb.db.CosineSimilarityCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 
+@Service
 public class RgbColors {
     private static int K = 7;
 
-    private static VectorDB<String> vdb = null;
+    private VectorDB<String> vdb = null;
 
-    private static void initializeDb() {
+    public RgbColors() {
         vdb = VectorDB.create();
         for (int i = -1; i<256; i+=16) {
             for (int j = -1; j<256; j+=16) {
@@ -34,10 +36,8 @@ public class RgbColors {
 
     public record SevenColors(Color similar1, Color similar2, Color similar3, Color similar4, Color similar5, Color similar6, Color similar7) { }
     public record Color(String code, String vector, double distance) { }
-    public static SevenColors nearestNeighbours(double r, double g, double b){
-        if (vdb == null) {
-            initializeDb();
-        }
+
+    public SevenColors nearestNeighbours(double r, double g, double b){
         var list = vdb.kNearestNeighbours(embed(r/256d,g/256d,b/256d), K, new CosineSimilarityCalculator());
         return new SevenColors(
                 new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),

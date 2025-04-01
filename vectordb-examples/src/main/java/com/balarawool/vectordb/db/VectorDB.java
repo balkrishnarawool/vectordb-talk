@@ -70,6 +70,8 @@ public class VectorDB<D> {
     }
 
     public record Tuple<D>(Map.Entry<Vector, D> entry, double distance) { }
+
+    /// Returns k number of nearest neighbours of a given vector using given distance-calculator.
     public List<Tuple<D>> kNearestNeighbours(Vector vector, int k, DistanceCalculator distanceCalculator){
         return db.entrySet().stream()
                 .map(e -> new Tuple<>(e, distance(vector, e.getKey(), distanceCalculator)))
