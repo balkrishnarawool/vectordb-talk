@@ -119,4 +119,9 @@ public record Vector(double[] embedding) {
 
         return new Vector(result);
     }
+
+    public double euclideanDistance(Vector vector2) {
+        var diffVector = this.subtract(vector2);
+        return diffVector.magnitude();
+    }
 }

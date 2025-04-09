@@ -1,6 +1,6 @@
 package com.balarawool.vectordb.example1;
 
-import com.balarawool.vectordb.db.ScalarDistanceCalculator;
+import com.balarawool.vectordb.db.EuclideanDistanceCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
 import org.springframework.stereotype.Service;
@@ -33,11 +33,11 @@ public class GrayColors {
     public record Color(String code, String vector, double distance) { }
 
     public ThreeColors nearestNeighbours(String color){
-        var list = vdb.kNearestNeighbours(embed(color), K, new ScalarDistanceCalculator());
+        var list = vdb.kNearestNeighbours(embed(color), K, new EuclideanDistanceCalculator());
         return new ThreeColors(
-                new Color(list.get(0).entry().getValue(), vectorToString(list.get(0)), list.get(0).distance()),
-                new Color(list.get(1).entry().getValue(), vectorToString(list.get(1)), list.get(1).distance()),
-                new Color(list.get(2).entry().getValue(), vectorToString(list.get(2)), list.get(2).distance())
+                new Color(list.get(0).entry().getValue(), vectorToString(list.get(0)), list.get(0).d()),
+                new Color(list.get(1).entry().getValue(), vectorToString(list.get(1)), list.get(1).d()),
+                new Color(list.get(2).entry().getValue(), vectorToString(list.get(2)), list.get(2).d())
         );
     }
 

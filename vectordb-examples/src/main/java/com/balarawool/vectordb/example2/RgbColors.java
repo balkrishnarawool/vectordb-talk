@@ -42,13 +42,13 @@ public class RgbColors {
 
         var list = vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator());
         return new SevenColors(
-                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).distance()),
-                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).distance()),
-                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey().embedding()), list.get(2).distance()),
-                new Color(list.get(3).entry().getValue(), Arrays.toString(list.get(3).entry().getKey().embedding()), list.get(3).distance()),
-                new Color(list.get(4).entry().getValue(), Arrays.toString(list.get(4).entry().getKey().embedding()), list.get(4).distance()),
-                new Color(list.get(5).entry().getValue(), Arrays.toString(list.get(5).entry().getKey().embedding()), list.get(5).distance()),
-                new Color(list.get(6).entry().getValue(), Arrays.toString(list.get(6).entry().getKey().embedding()), list.get(6).distance())
+                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).d()),
+                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).d()),
+                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey().embedding()), list.get(2).d()),
+                new Color(list.get(3).entry().getValue(), Arrays.toString(list.get(3).entry().getKey().embedding()), list.get(3).d()),
+                new Color(list.get(4).entry().getValue(), Arrays.toString(list.get(4).entry().getKey().embedding()), list.get(4).d()),
+                new Color(list.get(5).entry().getValue(), Arrays.toString(list.get(5).entry().getKey().embedding()), list.get(5).d()),
+                new Color(list.get(6).entry().getValue(), Arrays.toString(list.get(6).entry().getKey().embedding()), list.get(6).d())
         );
     }
 }

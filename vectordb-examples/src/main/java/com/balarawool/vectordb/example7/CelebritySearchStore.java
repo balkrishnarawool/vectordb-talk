@@ -25,7 +25,9 @@ public class CelebritySearchStore {
             Result<GraphQLResponse> r = weaviateClient.graphQL().get()
                     .withClassName("Celebrities")
                     .withFields(Field.builder().name("image").build())
-                    .withNearImage(NearImageArgument.builder().image(Base64.getEncoder().encodeToString(file.getBytes())).build())
+                    .withNearImage(NearImageArgument.builder()
+                            .image(Base64.getEncoder().encodeToString(file.getBytes()))
+                            .build())
                     .withLimit(6)
                     .run();
 

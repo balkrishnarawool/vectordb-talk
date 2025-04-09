@@ -1,11 +1,12 @@
 package com.balarawool.vectordb.db;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.reverseOrder;
+import static java.util.Comparator.comparing;
 
 /// Simple Vector Database implementation.
 /// Stores data <-> embedding mapping in an in-memory store.
@@ -69,26 +70,23 @@ public class VectorDB<D> {
                  .orElseThrow(() -> new IllegalStateException(String.format("Entry not found for data %s", data)));
     }
 
-    public record Tuple<D>(Map.Entry<Vector, D> entry, double distance) { }
+    public record Tuple<D>(Map.Entry<Vector, D> entry, double d) { }
 
-    /// Returns k number of nearest neighbours of a given vector using given distance-calculator.
-    public List<Tuple<D>> kNearestNeighbours(Vector vector, int k, DistanceCalculator distanceCalculator){
+    /// Returns k number of nearest neighbours of a given vector using given similarity-calculator.
+    public List<Tuple<D>> kNearestNeighbours(Vector vector, int k, SimilarityCalculator similarityCalculator){
         return db.entrySet().stream()
-                .map(e -> new Tuple<>(e, distance(vector, e.getKey(), distanceCalculator)))
-                .sorted(sort(distanceCalculator))
+                .map(e -> new Tuple<>(e, similarityCalculator.similarity(vector, e.getKey())))
+                .sorted(reverseOrder(comparing(Tuple::d)))
                 .limit(k)
                 .toList();
     }
 
-    private Comparator<? super Tuple<D>> sort(DistanceCalculator distanceCalculator) {
-        // This is added because OneDimensionDistanceCalculator values range from 0 to infinity when vectors are most to least similar.
-        // For others, they range from 1 to -1 when vectors are most to least similar.
-        return distanceCalculator instanceof ScalarDistanceCalculator
-                ? Comparator.comparing(Tuple::distance)
-                : Collections.reverseOrder(Comparator.comparing(Tuple::distance));
-    }
-
-    private double distance(Vector vector1, Vector vector2, DistanceCalculator distanceCalculator) {
-        return distanceCalculator.distance(vector1, vector2);
+    /// Returns k number of nearest neighbours of a given vector using given distance-calculator.
+    public List<Tuple<D>> kNearestNeighbours(Vector vector, int k, DistanceCalculator distanceCalculator){
+        return db.entrySet().stream()
+                .map(e -> new Tuple<>(e, distanceCalculator.distance(vector, e.getKey())))
+                .sorted(comparing(Tuple::d))
+                .limit(k)
+                .toList();
     }
 }
