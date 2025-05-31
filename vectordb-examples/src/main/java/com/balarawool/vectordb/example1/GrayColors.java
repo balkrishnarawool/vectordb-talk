@@ -3,6 +3,7 @@ package com.balarawool.vectordb.example1;
 import com.balarawool.vectordb.db.EuclideanDistanceCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
+import com.balarawool.vectordb.db.VectorDB.Tuple;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -22,6 +23,9 @@ public class GrayColors {
         }
     }
 
+    // This implementation loops over the list twice, but it is clear.
+    // It makes it clear that the embedding is dependent on the index of the color in te list.
+    // So keeping it this way.
     private static Vector embed(String hexColor){
         for (int i = 0; i < COLORS.size(); i++) {
             if (COLORS.get(i).equals(hexColor)) return new Vector(new double[]{i});
@@ -35,10 +39,14 @@ public class GrayColors {
     public ThreeColors nearestNeighbours(String color){
         var list = vdb.kNearestNeighbours(embed(color), K, new EuclideanDistanceCalculator());
         return new ThreeColors(
-                new Color(list.get(0).entry().getValue(), vectorToString(list.get(0)), list.get(0).d()),
-                new Color(list.get(1).entry().getValue(), vectorToString(list.get(1)), list.get(1).d()),
-                new Color(list.get(2).entry().getValue(), vectorToString(list.get(2)), list.get(2).d())
+                getColorFromTuple(list.get(0)),
+                getColorFromTuple(list.get(1)),
+                getColorFromTuple(list.get(2))
         );
+    }
+
+    private Color getColorFromTuple(Tuple<String> tuple) {
+        return new Color(tuple.entry().getValue(), vectorToString(tuple), tuple.d());
     }
 
     private String vectorToString(VectorDB.Tuple<String> tuple) {

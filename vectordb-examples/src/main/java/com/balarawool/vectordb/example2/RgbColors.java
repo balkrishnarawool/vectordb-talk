@@ -3,6 +3,7 @@ package com.balarawool.vectordb.example2;
 import com.balarawool.vectordb.db.CosineSimilarityCalculator;
 import com.balarawool.vectordb.db.Vector;
 import com.balarawool.vectordb.db.VectorDB;
+import com.balarawool.vectordb.db.VectorDB.Tuple;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -29,8 +30,6 @@ public class RgbColors {
     }
 
     private static Vector embed(double r, double g, double b){
-        // double v = Math.sqrt(r*r + g*g + b*b);
-        // return new Vector(new double[]{r/v, g/v, b/v});
         return new Vector(new double[]{r, g, b}).normalize();
     }
 
@@ -42,13 +41,17 @@ public class RgbColors {
 
         var list = vdb.kNearestNeighbours(vector, K, new CosineSimilarityCalculator());
         return new SevenColors(
-                new Color(list.get(0).entry().getValue(), Arrays.toString(list.get(0).entry().getKey().embedding()), list.get(0).d()),
-                new Color(list.get(1).entry().getValue(), Arrays.toString(list.get(1).entry().getKey().embedding()), list.get(1).d()),
-                new Color(list.get(2).entry().getValue(), Arrays.toString(list.get(2).entry().getKey().embedding()), list.get(2).d()),
-                new Color(list.get(3).entry().getValue(), Arrays.toString(list.get(3).entry().getKey().embedding()), list.get(3).d()),
-                new Color(list.get(4).entry().getValue(), Arrays.toString(list.get(4).entry().getKey().embedding()), list.get(4).d()),
-                new Color(list.get(5).entry().getValue(), Arrays.toString(list.get(5).entry().getKey().embedding()), list.get(5).d()),
-                new Color(list.get(6).entry().getValue(), Arrays.toString(list.get(6).entry().getKey().embedding()), list.get(6).d())
+                getColorFromTuple(list.get(0)),
+                getColorFromTuple(list.get(1)),
+                getColorFromTuple(list.get(2)),
+                getColorFromTuple(list.get(3)),
+                getColorFromTuple(list.get(4)),
+                getColorFromTuple(list.get(5)),
+                getColorFromTuple(list.get(6))
         );
+    }
+
+    private Color getColorFromTuple(Tuple<String> tuple) {
+        return new Color(tuple.entry().getValue(), Arrays.toString(tuple.entry().getKey().embedding()), tuple.d());
     }
 }

@@ -19,7 +19,7 @@ import static java.util.Comparator.comparing;
 /// - delete an existing entry
 /// (Note that update is not a separate method, if you want to update, delete existing entry and insert a new one)
 ///
-/// @param <D> - Type of data
+/// @param <D> Type of data
 public class VectorDB<D> {
 
     private Map<Vector, D> db = new HashMap<>();
