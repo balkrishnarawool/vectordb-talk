@@ -13,7 +13,7 @@ public class GrayController {
     }
 
     @GetMapping("/gray-colors/nearest-neighbours")
-    public GrayColors.ThreeColors nearestNeighbours(@RequestParam("color") String color) {
+    public GrayColors.ThreeColors nearestNeighbours(String color) {
         return grayColors.nearestNeighbours(color);
     }
 }

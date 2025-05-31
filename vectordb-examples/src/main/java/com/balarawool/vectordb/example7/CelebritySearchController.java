@@ -17,7 +17,7 @@ public class CelebritySearchController {
     }
 
     @PostMapping("/celebrity-search")
-    public ResponseEntity<Result<GraphQLResponse>> search(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Result<GraphQLResponse>> search(MultipartFile file) {
         return celebritySearchStore.search(file);
     }
 }

@@ -15,7 +15,7 @@ public class BigWikiController {
     }
 
     @GetMapping("/big-wiki/search")
-    public List<String> search(@RequestParam("query") String query) {
+    public List<String> search(String query) {
         return bigWikiHNSW.search(query);
     }
 }
