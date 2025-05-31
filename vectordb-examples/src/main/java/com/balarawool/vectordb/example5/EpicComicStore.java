@@ -1,29 +1,28 @@
 package com.balarawool.vectordb.example5;
 
 import com.pgvector.PGvector;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.ollama.OllamaChatClient;
 import org.springframework.ai.ollama.OllamaEmbeddingClient;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 public class EpicComicStore {
     private static final String PROMPT0 = "Please be concise with your responses. ";
     private static final String PROMPT1 = "You are a helpful and friendly support assistant for Epic Comic Co, a comic book store. " +
             "Below is more info you can use to answer the question from the customer. ";
-    private static final String PROMPT2 = " And please answer this question from the customer: ";
-
-
+    private static final String PROMPT2 = "Please answer this question from the customer: ";
     private static final boolean RAG = true;
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    public EpicComicStore(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public String chat(String message) {
         var ollamaApi = new OllamaApi();

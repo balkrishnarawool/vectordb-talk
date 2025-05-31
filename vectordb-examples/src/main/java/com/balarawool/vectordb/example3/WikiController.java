@@ -10,20 +10,25 @@ import java.util.List;
 
 @RestController
 public class WikiController {
+    private WikiWord2Vec wikiWord2Vec;
+
+    public WikiController(WikiWord2Vec wikiWord2Vec) {
+        this.wikiWord2Vec = wikiWord2Vec;
+    }
 
     @GetMapping("/wiki/embedding")
     public WikiWord2Vec.Embedding embedding(@RequestParam("word") String word) throws IOException {
-        return WikiWord2Vec.embedding(word);
+        return wikiWord2Vec.embedding(word);
     }
 
     @GetMapping("/wiki/nearest-neighbours")
     public List<WikiWord2Vec.Entry> nearestNeighbours(@RequestParam("word") String word) throws IOException {
-        return WikiWord2Vec.nearestNeighbours(word);
+        return wikiWord2Vec.nearestNeighbours(word);
     }
 
     @GetMapping("/wiki/equation")
     public List<WikiWord2Vec.Entry> equation(@RequestParam("start") String start, @RequestParam("toSubtract") String toSubtract, @RequestParam("toAdd") String toAdd) throws IOException {
-        return WikiWord2Vec.equation(start, toSubtract, toAdd);
+        return wikiWord2Vec.equation(start, toSubtract, toAdd);
     }
 
 

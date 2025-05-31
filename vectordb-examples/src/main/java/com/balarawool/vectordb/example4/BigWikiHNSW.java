@@ -6,14 +6,17 @@ import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
-public class BigWikiPGVectorHNSW {
-    @Autowired
+@Service
+public class BigWikiHNSW {
     JdbcTemplate jdbcTemplate;
+
+    public BigWikiHNSW(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public List<String> search(String query) {
         var ollamaApi = new OllamaApi();

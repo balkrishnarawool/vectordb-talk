@@ -6,11 +6,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class GrayController {
+    private GrayColors grayColors;
+
+    public GrayController(GrayColors grayColors) {
+        this.grayColors = grayColors;
+    }
 
     @GetMapping("/gray-colors/nearest-neighbours")
     public GrayColors.ThreeColors nearestNeighbours(@RequestParam("color") String color) {
-        return GrayColors.nearestNeighbours(color);
+        return grayColors.nearestNeighbours(color);
     }
-
-
 }
