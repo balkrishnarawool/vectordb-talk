@@ -14,7 +14,7 @@ public class RgbController {
     }
 
     @GetMapping("/rgb-colors/nearest-neighbours")
-    public RgbColors.SevenColors nearestNeighbours(@RequestParam("r") int r, @RequestParam("g") int g, @RequestParam("b") int b) {
+    public RgbColors.SevenColors nearestNeighbours(int r, int g, int b) {
         return rgbColors.nearestNeighbours(r, g, b);
     }
 

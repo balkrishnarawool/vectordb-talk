@@ -17,17 +17,17 @@ public class WikiController {
     }
 
     @GetMapping("/wiki/embedding")
-    public WikiWord2Vec.Embedding embedding(@RequestParam("word") String word) throws IOException {
+    public WikiWord2Vec.Embedding embedding(String word) throws IOException {
         return wikiWord2Vec.embedding(word);
     }
 
     @GetMapping("/wiki/nearest-neighbours")
-    public List<WikiWord2Vec.Entry> nearestNeighbours(@RequestParam("word") String word) throws IOException {
+    public List<WikiWord2Vec.Entry> nearestNeighbours(String word) throws IOException {
         return wikiWord2Vec.nearestNeighbours(word);
     }
 
     @GetMapping("/wiki/equation")
-    public List<WikiWord2Vec.Entry> equation(@RequestParam("start") String start, @RequestParam("toSubtract") String toSubtract, @RequestParam("toAdd") String toAdd) throws IOException {
+    public List<WikiWord2Vec.Entry> equation(String start, String toSubtract, String toAdd) throws IOException {
         return wikiWord2Vec.equation(start, toSubtract, toAdd);
     }
 

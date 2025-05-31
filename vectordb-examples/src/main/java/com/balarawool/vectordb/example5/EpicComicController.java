@@ -17,7 +17,7 @@ public class EpicComicController {
 
     public record Response(String message) { }
     @GetMapping("/epic-support/chat")
-    public Response chat(@RequestParam("message") String message) {
+    public Response chat(String message) {
         return new Response(epicComicStore.chat(message));
     }
 }

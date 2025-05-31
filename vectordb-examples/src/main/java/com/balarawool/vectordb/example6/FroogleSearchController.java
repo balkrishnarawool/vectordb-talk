@@ -22,7 +22,7 @@ public class FroogleSearchController {
     }
 
     @PostMapping("/froogle-search")
-    public ResponseEntity<Result<GraphQLResponse>> search(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Result<GraphQLResponse>> search(MultipartFile file) {
         return froogleSearchStore.search(file);
     }
 }
