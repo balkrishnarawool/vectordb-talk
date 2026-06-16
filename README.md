@@ -36,29 +36,29 @@ And the various examples use:
 - Weavite with img2vec-neural vectorization module (run as docker container)
 - Local or cloud LLM (Currently using llama-3.1-8b-instant via Groq)
 
-Docker containers:
+### Docker containers:
 There are two docker compose files:
 - one for Postgres and its admin console
 - another one for Weaviate and its vectorization module
 
-Setup Postgres
+### Setup Postgres
 - Ensure you have the two containers running for postgres using docker compose
 - Then go to Postgres Admin Console and create a Server. This would automatically create a database called 'vector_store'.
 - Run the ddl.sql (located at /resources/sql). This will create necessary tables.
 
-Setup Weaviate
+### Setup Weaviate
 - Ensure you have the two containers running for Weaviate using docker compose
 - No need for any setup after that.
 - When you run the app, it should create the necessary classes with fields.
 
-Data
+### Data
 - Various examples use a lot of data. Mostly images (jpeg, png files).
 - If you look at [DemoApplication](vectordb-examples/src/main/java/com/balarawool/vectordb/DemoApplication.java), you can see that these need to be in a specific structure. 
 - As this is large binary data, I did not add it to the git repo. Please reach out to me via the socials (Bluesky or Twitter) if you need this data.
 - Also, various methods in [DemoApplication](vectordb-examples/src/main/java/com/balarawool/vectordb/DemoApplication.java) make use of `initializeDb` fields to indicate if you want to extract vectors are store them in database.
 So change them to `true` when running for the first time and subsequently to `false`.
 
-Python
+### Python
 - The last example can be run in two ways: Weaviate or a local-Python setup
 - If you decide to use the Python-way (This is what is currently enabled. The Weaviate part of code is commented out.) then you need some more setup.
 Check [FaceVectorCalculator.java](vectordb-examples/src/main/java/com/balarawool/vectordb/example7/FaceVectorCalculator.java) for details.
