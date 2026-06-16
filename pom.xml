@@ -20,6 +20,7 @@
     </parent>
 
     <properties>
+        <maven.compiler.release>23</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-framework.version>7.0.5</spring-framework.version>
     </properties>

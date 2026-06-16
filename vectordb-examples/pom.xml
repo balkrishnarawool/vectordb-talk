@@ -12,10 +12,6 @@
     <artifactId>vectordb-examples</artifactId>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Updated properties to match modern Spring Boot 4 / Java 23 ecosystem -->
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
         <spring-ai.version>2.0.0-M2</spring-ai.version>
     </properties>
 
