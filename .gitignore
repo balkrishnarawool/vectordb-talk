@@ -42,3 +42,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/vectordb-examples/docker-compose-pg/servers.json/

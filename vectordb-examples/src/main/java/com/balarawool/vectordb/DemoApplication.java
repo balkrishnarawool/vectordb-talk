@@ -1,19 +1,24 @@
 package com.balarawool.vectordb;
 
+import com.balarawool.vectordb.example7.FaceVectorCalculator;
 import com.pgvector.PGvector;
 import io.weaviate.client.Config;
 import io.weaviate.client.WeaviateClient;
 import io.weaviate.client.v1.schema.model.Property;
 import io.weaviate.client.v1.schema.model.WeaviateClass;
 import org.apache.commons.io.FileUtils;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
-import org.springframework.ai.ollama.OllamaEmbeddingClient;
-import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.OllamaEmbeddingModel;
+import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.ResourceUtils;
 
@@ -21,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 ///
 /// Don't forget --add-modules jdk.incubator.vector
+/// Added to spring-boot-maven-plugin in pom.xml
 @SpringBootApplication
 public class DemoApplication {
 
@@ -36,15 +44,39 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
+    // We need to do this because there are two beans of EmbeddingModel from different libraries:
+    // OllamaEmbeddingModel and OpenAiEmbeddingModel.
+    // We want to use OllamaEmbeddingModel.
     @Bean
-    ApplicationRunner applicationRunnerMathBig(JdbcTemplate jdbcTemplate) {
+    @Primary
+    public EmbeddingModel embeddingModel(@Qualifier("ollamaEmbeddingModel") EmbeddingModel ollamaEmbeddingModel) {
+        return ollamaEmbeddingModel;
+    }
+
+    // We need to do this because there are two beans of ChatModel from different libraries:
+    // OllamaChatModel and OpenAiChatModel.
+    // We want to use OpenAiChatModel.
+    @Bean
+    @Primary
+    public ChatModel chatModel(@Qualifier("openAiChatModel") ChatModel openAiChatModel) {
+        return openAiChatModel;
+    }
+
+    @Bean
+    public OllamaEmbeddingOptions ollamaEmbeddingOptions() {
+        return OllamaEmbeddingOptions.builder()
+                .model("nomic-embed-text")
+                .truncate(false)
+                .build();
+    }
+
+    // Store vectors for Mathematics (Example 4) in postgres
+    @Bean
+    ApplicationRunner applicationRunnerMathBig(JdbcTemplate jdbcTemplate, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
         return args -> {
             var initializeDb = false;
             if (initializeDb) {
                 System.out.println("Initializing...");
-                var ollamaApi = new OllamaApi();
-                var embeddingClient = new OllamaEmbeddingClient(ollamaApi).withDefaultOptions(OllamaOptions.create().withModel("llama3"));
-
                 var path = ResourceUtils.getFile("classpath:data/mathematics_lines.txt").toPath();
                 var n = new AtomicInteger(1);
                 var set = new HashSet<String>();
@@ -52,9 +84,9 @@ public class DemoApplication {
                     if (s.split("\\s+").length > 5) {
                         if (set.add(s)) {
                             System.out.println(s);
-                            EmbeddingResponse embeddingResponse = embeddingClient.embedForResponse(List.of(s.toLowerCase()));
-                            List<Double> vector = embeddingResponse.getResults().get(0).getOutput();
-                            vector.subList(2000, 4096).clear(); // remove dimensions before sending it to DB.
+                            EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
+                                    new EmbeddingRequest(List.of(s.toLowerCase()), ollamaEmbeddingOptions));
+                            var vector = embeddingResponse.getResults().get(0).getOutput();
 
                             jdbcTemplate.update("INSERT INTO math_big_vector_store(content, embedding) values(?, ?)", s, new PGvector(vector));
                             System.out.println("Line " + n.getAndIncrement() + " of approximately 2000 added.");
@@ -65,15 +97,13 @@ public class DemoApplication {
         };
     }
 
+    // Store vectors for Epic Comics Co (Example 5) in postgres
     @Bean
-    ApplicationRunner applicationRunnerEpic(JdbcTemplate jdbcTemplate) {
+    ApplicationRunner applicationRunnerEpic(JdbcTemplate jdbcTemplate, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
         return args -> {
             var initializeDb = false;
             if (initializeDb) {
                 System.out.println("Initializing...");
-                var ollamaApi = new OllamaApi();
-                var embeddingClient = new OllamaEmbeddingClient(ollamaApi).withDefaultOptions(OllamaOptions.create().withModel("llama3"));
-
                 var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
                 var n = new AtomicInteger(1);
                 var sb = new StringBuilder();
@@ -84,9 +114,9 @@ public class DemoApplication {
                         var chunk = sb.toString();
                         if (!chunk.isEmpty()) {
                             System.out.println(chunk);
-                            EmbeddingResponse embeddingResponse = embeddingClient.embedForResponse(List.of(chunk.toLowerCase()));
-                            List<Double> vector = embeddingResponse.getResults().get(0).getOutput();
-                            vector.subList(2000, 4096).clear(); // remove dimensions before sending it to DB.
+                            EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
+                                    new EmbeddingRequest(List.of(chunk.toLowerCase()), ollamaEmbeddingOptions));
+                            var vector = embeddingResponse.getResults().get(0).getOutput();
 
                             jdbcTemplate.update("INSERT INTO epic_vector_store(content, orig_content, embedding) values(?, ?, ?)", chunk.toLowerCase(), chunk, new PGvector(vector));
                             sb.delete(0, sb.length());
@@ -103,6 +133,7 @@ public class DemoApplication {
         return new WeaviateClient(config);
     }
 
+    // Store vectors for Froogle Search (Example 6) in Weaviate
     @Bean
     ApplicationRunner applicationRunnerWonders(WeaviateClient weaviateClient) {
         return args -> {
@@ -111,11 +142,14 @@ public class DemoApplication {
         };
     }
 
+    // Store vectors for Celebrities (Example 7) in Postgres
     @Bean
-    ApplicationRunner applicationRunnerCelebrities(WeaviateClient weaviateClient) {
+    ApplicationRunner applicationRunnerCelebrities(JdbcTemplate jdbcTemplate, WeaviateClient weaviateClient) {
         return args -> {
             var initializeDb = false;
-            initialize(weaviateClient, initializeDb, "Celebrities", "data/celebrities");
+//            initialize(weaviateClient, initializeDb, "Celebrities", "data/celebrities");
+            initialize(jdbcTemplate, initializeDb, "data/celebrities");
+
         };
     }
 
@@ -161,6 +195,35 @@ public class DemoApplication {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+        }
+    }
+
+    private void initialize(JdbcTemplate jdbcTemplate, boolean initializeDb, String dataPathInRes) {
+        if (initializeDb) {
+            try {
+                var sampleDir = ResourceUtils.getFile("classpath:"+dataPathInRes);
+                for (var subDir : sampleDir.listFiles()) {
+                    for (var f : subDir.listFiles()) {
+                        embedAndStore(jdbcTemplate, f);
+                        System.out.println("File stored: " + f.getPath());
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void embedAndStore(JdbcTemplate jdbcTemplate, File f) {
+        var vector = FaceVectorCalculator.calculateFaceVector(f.getAbsolutePath());
+        if (!vector.isEmpty()) {
+            try {
+                byte[] fileBytes = Files.readAllBytes(Paths.get(f.getAbsolutePath()));
+                String content = Base64.getEncoder().encodeToString(fileBytes);
+                jdbcTemplate.update("INSERT INTO celebrity(filename, content, embedding) values(?, ?, ?)", f.getAbsolutePath(), content, new PGvector(vector));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

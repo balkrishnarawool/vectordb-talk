@@ -13,21 +13,59 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Updated properties to match modern Spring Boot 4 / Java 23 ecosystem -->
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
+        <spring-ai.version>2.0.0-M2</spring-ai.version>
     </properties>
+
+    <!-- The BOM forces ALL spring-ai artifacts to use 2.0.0-M8 matching Spring Boot 4 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>3.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <version>3.2.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Added to fix this error 'Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults.' on MacBook Air -->
+        <!-- To be honest, this was not necessary as the app was working fine despite this error. -->
+        <!-- But add this to get rid of the error message from the console -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <!-- Use "osx-aarch_64" to explicitly target your M1 Apple Silicon chip -->
+            <classifier>osx-aarch_64</classifier>
+            <scope>runtime</scope>
+        </dependency>
+
 
         <!-- Example 3 -->
         <dependency>
@@ -51,7 +89,7 @@
             <groupId>org.deeplearning4j</groupId>
             <artifactId>deeplearning4j-core</artifactId>
             <version>1.0.0-M2.1</version>
-            <!--            This exclusion might need to be added to all other dependencies, if slf4j error is received on start-up.-->
+            <!-- This exclusion might need to be added to all other dependencies, if slf4j error is received on start-up.-->
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -64,6 +102,7 @@
             <artifactId>deeplearning4j-nlp</artifactId>
             <version>1.0.0-M2.1</version>
         </dependency>
+        <!-- Lombok is used by deeplearning4j -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -74,25 +113,34 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama</artifactId>
-            <version>0.8.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-pgvector-store-spring-boot-starter</artifactId>
-            <version>0.8.0-SNAPSHOT</version>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.pgvector</groupId>
             <artifactId>pgvector</artifactId>
             <version>0.1.4</version>
         </dependency>
+
+        <!-- Needed only if you are using Groq -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
-            <version>3.2.3</version>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
-        <!-- Example 6 -->
+        <!-- Example 6 and 7 -->
         <dependency>
             <groupId>io.weaviate</groupId>
             <artifactId>client</artifactId>
@@ -105,6 +153,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.15.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -128,12 +177,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>4.0.0</version>
                 <configuration>
                     <jvmArguments>--add-modules=jdk.incubator.vector</jvmArguments>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

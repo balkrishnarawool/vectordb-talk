@@ -16,8 +16,14 @@
               response.json().then(function(json) {
                 console.log(json);
 
-                src = "data:image/jpeg;base64, " + json.result.data.Get.Celebrities[0].image;
-                document.getElementById('image').src = src;
+                // Code for Weaviate-way commented. Check README for details.
+                // src = "data:image/jpeg;base64, " + json.result.data.Get.Celebrities[0].image;
+                  if (json.filename.length > 0) {
+                      src = "data:image/jpeg;base64, " + json.content;
+                      document.getElementById('image').src = src;
+                  } else {
+                      alert('Face cannot be detected in the uploaded image!');
+                  }
               });
             }, function(error) {
               console.error('failed due to network error or cross domain')
