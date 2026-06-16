@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.math_big_vector_store
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     content text COLLATE pg_catalog."default",
     metadata json,
-    embedding vector(2000),
+    embedding vector(768),
     CONSTRAINT math_big_vector_store_pkey PRIMARY KEY (id)
 )
 
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.epic_vector_store
     id uuid NOT NULL DEFAULT uuid_generate_v4(),
     content text COLLATE pg_catalog."default",
     orig_content text COLLATE pg_catalog."default",
-    embedding vector(2000),
+    embedding vector(768),
     CONSTRAINT epic_vector_store_pkey PRIMARY KEY (id)
 )
 
