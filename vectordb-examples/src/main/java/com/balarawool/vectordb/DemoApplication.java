@@ -1,5 +1,12 @@
 package com.balarawool.vectordb;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.mapping.DenseVectorProperty;
+import co.elastic.clients.elasticsearch._types.mapping.DenseVectorSimilarity;
+import co.elastic.clients.elasticsearch._types.mapping.TextProperty;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.balarawool.vectordb.example5.QuestionDocument;
 import com.balarawool.vectordb.example7.FaceVectorCalculator;
 import com.pgvector.PGvector;
 import io.weaviate.client.Config;
@@ -7,6 +14,8 @@ import io.weaviate.client.WeaviateClient;
 import io.weaviate.client.v1.schema.model.Property;
 import io.weaviate.client.v1.schema.model.WeaviateClass;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingRequest;
@@ -26,13 +35,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
+
+import static com.balarawool.vectordb.example5.VectorSearchService.INDEX_NAME;
 
 ///
 /// Don't forget --add-modules jdk.incubator.vector
@@ -68,6 +76,19 @@ public class DemoApplication {
                 .model("nomic-embed-text")
                 .truncate(false)
                 .build();
+    }
+
+    @Bean
+    public RestClient restClient() {
+        return RestClient.builder(
+                new HttpHost("localhost", 9200, "http")
+        ).build();
+    }
+
+    @Bean
+    public ElasticsearchClient elasticsearchClient(RestClient restClient) {
+        RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        return new ElasticsearchClient(transport);
     }
 
     // Store vectors for Mathematics (Example 4) in postgres
@@ -125,6 +146,79 @@ public class DemoApplication {
                 });
             }
         };
+    }
+
+    @Bean
+    ApplicationRunner applicationRunnerEpic2(ElasticsearchClient elasticsearchClient, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
+        return args -> {
+            var initializeDb = false;
+            if (initializeDb) {
+                setupIndex(elasticsearchClient);
+                System.out.println("Initializing...");
+                var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
+                var n = new AtomicInteger(1);
+                var sb = new StringBuilder();
+                Files.lines(path, Charset.defaultCharset()).forEach(s -> {
+                    try {
+                        if (!s.trim().isEmpty()) {
+                            sb.append(s).append(" ");
+                        } else {
+                            var chunk = sb.toString();
+                            if (!chunk.isEmpty()) {
+                                System.out.println(chunk);
+                                EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
+                                        new EmbeddingRequest(List.of(chunk.toLowerCase()), ollamaEmbeddingOptions));
+                                var vector = embeddingResponse.getResults().get(0).getOutput();
+                                var vectorList = IntStream.range(0, vector.length).mapToObj(i -> vector[i]).toList();
+
+                                var doc = new QuestionDocument(String.valueOf(n.getAndIncrement()), chunk, vectorList);
+                                elasticsearchClient.index(i -> i.index(INDEX_NAME).id(doc.getId()).document(doc));
+                                elasticsearchClient.indices().refresh(r -> r.index(INDEX_NAME));
+
+                                sb.delete(0, sb.length());
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        };
+    }
+
+    // Creates index with dense_vector and seeds mock items
+    private void setupIndex(ElasticsearchClient client) throws IOException {
+        // Reset index if it exists
+        if (client.indices().exists(e -> e.index(INDEX_NAME)).value()) {
+            client.indices().delete(d -> d.index(INDEX_NAME));
+        }
+
+        // Define Dense Vector schema with 768 dimensions and Cosine Similarity
+        client.indices().create(c -> c
+                .index(INDEX_NAME)
+                .mappings(m -> m
+                        .properties("text", co.elastic.clients.elasticsearch._types.mapping.Property.of(p -> p.text(TextProperty.of(t -> t))))
+                        .properties("textVector", co.elastic.clients.elasticsearch._types.mapping.Property.of(p -> p.denseVector(DenseVectorProperty.of(dv -> dv
+                                .dims(768)
+                                .index(true)
+                                .similarity(DenseVectorSimilarity.Cosine)
+                        ))))
+                )
+        );
+
+//        // Populate Mock Data
+//        List<ArticleDocument> mockDatabase = Arrays.asList(
+//                new ArticleDocument("1", "The quick brown fox jumps over the lazy dog", List.of(0.1f, 0.9f, 0.2f)),
+//                new ArticleDocument("2", "Artificial Intelligence and Machine Learning trends", List.of(0.8f, 0.1f, 0.7f)),
+//                new ArticleDocument("3", "Healthy breakfast recipes for an energetic morning", List.of(0.2f, 0.3f, 0.9f))
+//        );
+//
+//        for (ArticleDocument doc : mockDatabase) {
+//            client.index(i -> i.index(INDEX_NAME).id(doc.getId()).document(doc));
+//        }
+//
+//        // Refresh cluster memory
+//        client.indices().refresh(r -> r.index(INDEX_NAME));
     }
 
     @Bean

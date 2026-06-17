@@ -37,19 +37,24 @@ And the various examples use:
 - Local or cloud LLM (Currently using llama-3.1-8b-instant via Groq)
 
 ### Docker containers:
-There are two docker compose files:
+There are three docker compose files:
 - one for Postgres and its admin console
 - another one for Weaviate and its vectorization module
+- and another one for Elasticsearch
 
 ### Setup Postgres
-- Ensure you have the two containers running for postgres using docker compose
+- Ensure you have the two containers running for postgres using docker compose (go to the directory and run `docker compose up -d`)
 - Then go to Postgres Admin Console and create a Server. This would automatically create a database called 'vector_store'.
 - Run the ddl.sql (located at /resources/sql). This will create necessary tables.
 
 ### Setup Weaviate
-- Ensure you have the two containers running for Weaviate using docker compose
+- Ensure you have the two containers running for Weaviate using docker compose (go to the directory and run `docker compose up -d`)
 - No need for any setup after that.
 - When you run the app, it should create the necessary classes with fields.
+
+### Setup Elasticsearch
+- Ensure you have a container running for Elasticsearch using docker compose (go to the directory and run `docker compose up -d`)
+
 
 ### Data
 - Various examples use a lot of data. Mostly images (jpeg, png files).
