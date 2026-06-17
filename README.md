@@ -17,11 +17,6 @@ Here's a list of examples discussed:
 
 For any questions reach out to me here: [@balarawool.bsky.social](https://bsky.app/profile/balarawool.bsky.social)
 
-Note:
-The project uses GraphQL plugin from IntelliJ: https://plugins.jetbrains.com/plugin/8097-graphql
-So, if you want to run the .graphql file, do make sure it is installed.
-
-
 # Pre-requisites and setup:
 This project has a collection of examples and each comes with a set of dependencies.
 All these need to be managed properly to ensure that the examples run fine.
@@ -35,6 +30,11 @@ And the various examples use:
 - Postgres with pgvector extension (run as docker container)
 - Weavite with img2vec-neural vectorization module (run as docker container)
 - Local or cloud LLM (Currently using llama-3.1-8b-instant via Groq)
+
+### GoogleNews Word2Vec
+- Example 3 uses GoogleNews Word2Vec model
+- Download it from here: https://github.com/mmihaltz/word2vec-GoogleNews-vectors/blob/master/GoogleNews-vectors-negative300.bin.gz
+- Note that loading it takes quite some time (150 seconds on MacBook Air 2020)
 
 ### Docker containers:
 There are three docker compose files:
@@ -55,7 +55,6 @@ There are three docker compose files:
 ### Setup Elasticsearch
 - Ensure you have a container running for Elasticsearch using docker compose (go to the directory and run `docker compose up -d`)
 
-
 ### Data
 - Various examples use a lot of data. Mostly images (jpeg, png files).
 - If you look at [DemoApplication](vectordb-examples/src/main/java/com/balarawool/vectordb/DemoApplication.java), you can see that these need to be in a specific structure. 
@@ -67,5 +66,10 @@ So change them to `true` when running for the first time and subsequently to `fa
 - The last example can be run in two ways: Weaviate or a local-Python setup
 - If you decide to use the Python-way (This is what is currently enabled. The Weaviate part of code is commented out.) then you need some more setup.
 Check [FaceVectorCalculator.java](vectordb-examples/src/main/java/com/balarawool/vectordb/example7/FaceVectorCalculator.java) for details.
+
+### GraphQL
+- There is a .graphql file [sample_query.graphql](vectordb-examples/src/main/resources/graphql/sample_query.graphql) used to see contents of Weaviate database.
+- To run it from IntelliJ you'd need a plugin: https://plugins.jetbrains.com/plugin/8097-graphql
+
 
 
