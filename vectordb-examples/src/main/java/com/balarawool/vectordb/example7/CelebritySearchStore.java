@@ -7,6 +7,8 @@ import io.weaviate.client.v1.graphql.model.GraphQLResponse;
 import io.weaviate.client.v1.graphql.query.argument.NearImageArgument;
 import io.weaviate.client.v1.graphql.query.fields.Field;
 import org.bytedeco.flycapture.FlyCapture2.Image;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import java.util.Optional;
 
 @Service
 public class CelebritySearchStore {
+    private static final Logger log = LoggerFactory.getLogger(CelebritySearchStore.class);
+
     private WeaviateClient weaviateClient;
     private JdbcTemplate jdbcTemplate;
 
@@ -47,7 +51,7 @@ public class CelebritySearchStore {
 
     public Optional<ImageData> search(MultipartFile file) {
         try {
-            System.out.println(System.getProperty("java.io.tmpdir"));
+            log.info(System.getProperty("java.io.tmpdir"));
             Path tempFile = Files.createTempFile("upload-", file.getOriginalFilename());
             file.transferTo(tempFile.toFile());
             var vector = FaceVectorCalculator.calculateFaceVector(tempFile.toAbsolutePath().toString());

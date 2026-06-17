@@ -1,5 +1,7 @@
 package com.balarawool.vectordb.example5;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -16,6 +18,8 @@ import java.util.stream.IntStream;
 
 @Service
 public class EpicComicStore {
+    private static final Logger log = LoggerFactory.getLogger(EpicComicStore.class);
+
     private static final String PROMPT0 = "Please be concise with your responses. ";
     private static final String PROMPT1 = "You are a helpful and friendly support assistant for Epic Comic Co, a comic book store. " +
             "Below is more info you can use to answer the question from the customer. ";
@@ -56,7 +60,7 @@ public class EpicComicStore {
             }
 
             messageToSend = PROMPT0 + messageToSend + message;
-            System.out.println("Sending message to LLM: Message: " + messageToSend);
+            log.info("Sending message to LLM: Message: {}", messageToSend);
             ChatResponse response = chatModel.call(new Prompt(messageToSend,
                     OpenAiChatOptions.builder()
                             .model("llama-3.1-8b-instant") //Although this is set in properties file, have to set it here again

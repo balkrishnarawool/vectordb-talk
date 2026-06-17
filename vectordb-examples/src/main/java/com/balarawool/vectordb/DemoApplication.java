@@ -16,6 +16,8 @@ import io.weaviate.client.v1.schema.model.WeaviateClass;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingRequest;
@@ -47,6 +49,7 @@ import static com.balarawool.vectordb.example5.VectorSearchService.INDEX_NAME;
 /// Added to spring-boot-maven-plugin in pom.xml
 @SpringBootApplication
 public class DemoApplication {
+    private static final Logger log = LoggerFactory.getLogger(DemoApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
@@ -97,20 +100,20 @@ public class DemoApplication {
         return args -> {
             var initializeDb = false;
             if (initializeDb) {
-                System.out.println("Initializing...");
+                log.info("Initializing...");
                 var path = ResourceUtils.getFile("classpath:data/mathematics_lines.txt").toPath();
                 var n = new AtomicInteger(1);
                 var set = new HashSet<String>();
                 Files.lines(path, Charset.defaultCharset()).forEach(s -> {
                     if (s.split("\\s+").length > 5) {
                         if (set.add(s)) {
-                            System.out.println(s);
+                            log.info(s);
                             EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
                                     new EmbeddingRequest(List.of(s.toLowerCase()), ollamaEmbeddingOptions));
                             var vector = embeddingResponse.getResults().get(0).getOutput();
 
                             jdbcTemplate.update("INSERT INTO math_big_vector_store(content, embedding) values(?, ?)", s, new PGvector(vector));
-                            System.out.println("Line " + n.getAndIncrement() + " of approximately 2000 added.");
+                            log.info("Line {} of approximately 1000 added.", n.getAndIncrement());
                         }
                     }
                 });
@@ -124,7 +127,7 @@ public class DemoApplication {
         return args -> {
             var initializeDb = false;
             if (initializeDb) {
-                System.out.println("Initializing...");
+                log.info("Initializing...");
                 var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
                 var n = new AtomicInteger(1);
                 var sb = new StringBuilder();
@@ -134,7 +137,7 @@ public class DemoApplication {
                     } else {
                         var chunk = sb.toString();
                         if (!chunk.isEmpty()) {
-                            System.out.println(chunk);
+                            log.info(chunk);
                             EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
                                     new EmbeddingRequest(List.of(chunk.toLowerCase()), ollamaEmbeddingOptions));
                             var vector = embeddingResponse.getResults().get(0).getOutput();
@@ -154,7 +157,7 @@ public class DemoApplication {
             var initializeDb = false;
             if (initializeDb) {
                 setupIndex(elasticsearchClient);
-                System.out.println("Initializing...");
+                log.info("Initializing...");
                 var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
                 var n = new AtomicInteger(1);
                 var sb = new StringBuilder();
@@ -165,7 +168,7 @@ public class DemoApplication {
                         } else {
                             var chunk = sb.toString();
                             if (!chunk.isEmpty()) {
-                                System.out.println(chunk);
+                                log.info(chunk);
                                 EmbeddingResponse embeddingResponse = ollamaEmbeddingModel.call(
                                         new EmbeddingRequest(List.of(chunk.toLowerCase()), ollamaEmbeddingOptions));
                                 var vector = embeddingResponse.getResults().get(0).getOutput();
@@ -282,7 +285,7 @@ public class DemoApplication {
                         for (var subDir : sampleDir.listFiles()) {
                             for (var f : subDir.listFiles()) {
                                 embedAndStore(className, weaviateClient, f);
-                                System.out.println("File stored: " + f.getPath());
+                                log.info("File stored: " + f.getPath());
                             }
                         }
                     } catch (Exception e) {
@@ -300,7 +303,7 @@ public class DemoApplication {
                 for (var subDir : sampleDir.listFiles()) {
                     for (var f : subDir.listFiles()) {
                         embedAndStore(jdbcTemplate, f);
-                        System.out.println("File stored: " + f.getPath());
+                        log.info("File stored: " + f.getPath());
                     }
                 }
             } catch (Exception e) {

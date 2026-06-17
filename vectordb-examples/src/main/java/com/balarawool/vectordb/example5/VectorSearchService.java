@@ -3,6 +3,8 @@ package com.balarawool.vectordb.example5;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.util.List;
 /// Uses Elasticsearch to search within the Epic Comic Co FAQ
 @Service
 public class VectorSearchService {
+    private static final Logger log = LoggerFactory.getLogger(VectorSearchService.class);
+
     private final ElasticsearchClient client;
     public static final String INDEX_NAME = "epic_comic_store_vector_index";
 
@@ -27,7 +31,7 @@ public class VectorSearchService {
                         .knn(k -> k
                                 .field("textVector")
                                 .queryVector(queryVector)
-                                .k(2)                  // Retrieve closest 1 result
+                                .k(2)                  // Retrieve closest 2 results
                                 .numCandidates(10)     // HNSW depth traversal threshold
                         ),
                 QuestionDocument.class
@@ -37,7 +41,7 @@ public class VectorSearchService {
         for (Hit<QuestionDocument> hit : response.hits().hits()) {
             QuestionDocument doc = hit.source();
             if (doc != null) {
-                System.out.println(String.format("Match: '%s' (Score: %.4f)", doc.getText(), hit.score()));
+                log.info("Match: '{}' (Score: {})", doc.getText(), hit.score());
                 results.add(doc.getText());
             }
         }

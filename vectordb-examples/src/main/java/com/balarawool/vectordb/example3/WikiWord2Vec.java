@@ -11,6 +11,8 @@ import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreproc
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.common.io.ClassPathResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -25,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class WikiWord2Vec {
+    private static final Logger log = LoggerFactory.getLogger(WikiWord2Vec.class);
+
     private static int K = 10;
     private static final String DATA_FILE = "src/main/resources/data/wiki_4pages.txt";
     private static final String VECTOR_FILE = "src/main/resources/data/vectors_wiki4_google_w2v.txt";
@@ -71,7 +75,7 @@ public class WikiWord2Vec {
             createAndStoreVectors2();
         }
 
-        System.out.println(vectorFile.toAbsolutePath());
+        log.info("Vector File: {}", vectorFile.toAbsolutePath());
         AtomicInteger n = new AtomicInteger();
         Files.lines(vectorFile, Charset.defaultCharset()).forEach(line -> {
             var strs = line.split(" ");
@@ -85,7 +89,7 @@ public class WikiWord2Vec {
                 n.getAndIncrement();
             }
         });
-        System.out.println("Total words in DB: " + n.get());
+        log.info("Total words in DB: {}", n.get());
     }
 
     // This method is for old implementation which used DL4J's own word2vec
@@ -93,7 +97,7 @@ public class WikiWord2Vec {
         // Gets Path to Text file
         String filePath = new ClassPathResource(DATA_FILE).getFile().getAbsolutePath();
 
-        System.out.println("Load & Vectorize Sentences....");
+        log.info("Load & Vectorize Sentences....");
         // Strip white space before and after for each line
         SentenceIterator iter = new BasicLineIterator(filePath);
         // Split on white spaces in the line to get words
@@ -106,7 +110,7 @@ public class WikiWord2Vec {
          */
         t.setTokenPreProcessor(new CommonPreprocessor());
 
-        System.out.println("Building model....");
+        log.info("Building model....");
         Word2Vec vec = new Word2Vec.Builder()
                 .minWordFrequency(5)
                 .iterations(1)
@@ -117,10 +121,10 @@ public class WikiWord2Vec {
                 .tokenizerFactory(t)
                 .build();
 
-        System.out.println("Fitting Word2Vec model....");
+        log.info("Fitting Word2Vec model....");
         vec.fit();
 
-        System.out.println("Writing word vectors to text file....");
+        log.info("Writing word vectors to text file....");
 
         // Write word vectors to file
         WordVectorSerializer.writeWordVectors(vec, VECTOR_FILE);
@@ -143,14 +147,14 @@ public class WikiWord2Vec {
         thread.start();
 
         while (thread.isAlive()) {
-            System.out.println("Loading Google News Word2Vec model...");
+            log.info("Loading Google News Word2Vec model...");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
-        System.out.println("Done loading Google News Word2Vec model.");
+        log.info("Done loading Google News Word2Vec model.");
 
         var dataFile = Path.of(DATA_FILE);//new ClassPathResource(DATA_FILE).getFile();
         var vectorFile = Path.of(VECTOR_FILE);
@@ -164,16 +168,16 @@ public class WikiWord2Vec {
                             try {
                                 if (!s.isEmpty()) {
                                     var vector = vec.get().getWordVector(s.toLowerCase());
-                                    writer.write(s.toLowerCase() + " "); System.out.print(s.toLowerCase() + " ");
-                                    for (var d: vector) { writer.write(d + " "); System.out.print(d + " "); }
-                                    writer.newLine(); System.out.println();
+                                    writer.write(s.toLowerCase() + " ");
+                                    for (var d: vector) { writer.write(d + " "); }
+                                    writer.newLine();
                                     i.getAndIncrement();
-                                    System.out.println("Words: " + i);
                                 }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
                         });
+                    log.info("Total words added to Vector DB: {}", i);
                 });
     }
 }
