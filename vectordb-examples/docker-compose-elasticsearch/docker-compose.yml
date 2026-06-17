@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # Elasticsearch 9.2.0 Database Instance
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0
+    container_name: elasticsearch
+    environment:
+      - cluster.name=vector-cluster
+      - discovery.type=single-node
+      # Completely disable security tracking to bypass certificate requirements locally
+      - xpack.security.enabled=false
+      # Constrain heap allocations to optimize RAM overhead on your local system
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200" # REST API port exposed to your local machine (localhost:9200)
+      - "9300:9300" # Internal cluster communication port
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+volumes:
+  es_data:
+    driver: local
