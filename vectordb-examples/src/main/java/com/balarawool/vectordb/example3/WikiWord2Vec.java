@@ -11,19 +11,24 @@ import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreproc
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.common.io.ClassPathResource;
-import org.nd4j.shade.guava.io.Files;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class WikiWord2Vec {
     private static int K = 10;
-    private static final String VECTOR_FILE = "data/vectors_wiki4_new_v2.txt";
-    private static final String DATA_FILE = "data/wiki_4pages.txt";
+    private static final String DATA_FILE = "src/main/resources/data/wiki_4pages.txt";
+    private static final String VECTOR_FILE = "src/main/resources/data/vectors_wiki4_google_w2v.txt";
+    private static final String GOOGLE_W2V_FILE = "google_w2v/GoogleNews-vectors-negative300.bin.gz";
 
     private VectorDB<String> vdb = null;
 
@@ -60,11 +65,15 @@ public class WikiWord2Vec {
 
     private void initializeDb() throws IOException {
         vdb = VectorDB.create();
-        var vectorFile = new ClassPathResource(VECTOR_FILE).getFile();
-        if (!vectorFile.exists()) {
-            createAndStoreVectors();
+        var vectorFile = Path.of(VECTOR_FILE);
+
+        if (!Files.exists(vectorFile)) {
+            createAndStoreVectors2();
         }
-        for (var line: Files.readLines(vectorFile, Charset.defaultCharset())) {
+
+        System.out.println(vectorFile.toAbsolutePath());
+        AtomicInteger n = new AtomicInteger();
+        Files.lines(vectorFile, Charset.defaultCharset()).forEach(line -> {
             var strs = line.split(" ");
             if (strs.length > 3) {
                 var word = strs[0];
@@ -73,10 +82,13 @@ public class WikiWord2Vec {
                     embedding[i - 1] = Double.parseDouble(strs[i]);
                 }
                 vdb.insert(word, new Vector(embedding));
+                n.getAndIncrement();
             }
-        }
+        });
+        System.out.println("Total words in DB: " + n.get());
     }
 
+    // This method is for old implementation which used DL4J's own word2vec
     private static void createAndStoreVectors() throws IOException {
         // Gets Path to Text file
         String filePath = new ClassPathResource(DATA_FILE).getFile().getAbsolutePath();
@@ -112,5 +124,56 @@ public class WikiWord2Vec {
 
         // Write word vectors to file
         WordVectorSerializer.writeWordVectors(vec, VECTOR_FILE);
+    }
+
+    // This is new implementation which uses GoogleNewsWord2Vec
+    private static void createAndStoreVectors2() throws IOException {
+        AtomicReference<File> modelFile = new AtomicReference<>();
+        AtomicReference<Word2Vec> vec = new AtomicReference<>();
+        Thread thread = new Thread(() -> {
+            try {
+                modelFile.set(new ClassPathResource(GOOGLE_W2V_FILE).getFile());
+                vec.set(WordVectorSerializer.readWord2VecModel(modelFile.get()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        // Start the background thread
+        thread.start();
+
+        while (thread.isAlive()) {
+            System.out.println("Loading Google News Word2Vec model...");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        System.out.println("Done loading Google News Word2Vec model.");
+
+        var dataFile = Path.of(DATA_FILE);//new ClassPathResource(DATA_FILE).getFile();
+        var vectorFile = Path.of(VECTOR_FILE);
+        var writer = Files.newBufferedWriter(vectorFile);
+
+        Files.lines(dataFile, Charset.defaultCharset())
+                .forEach(line -> {
+                    AtomicInteger i = new AtomicInteger();
+                        Arrays.stream(line.split(" "))
+                        .forEach(s -> {
+                            try {
+                                if (!s.isEmpty()) {
+                                    var vector = vec.get().getWordVector(s.toLowerCase());
+                                    writer.write(s.toLowerCase() + " "); System.out.print(s.toLowerCase() + " ");
+                                    for (var d: vector) { writer.write(d + " "); System.out.print(d + " "); }
+                                    writer.newLine(); System.out.println();
+                                    i.getAndIncrement();
+                                    System.out.println("Words: " + i);
+                                }
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                });
     }
 }
