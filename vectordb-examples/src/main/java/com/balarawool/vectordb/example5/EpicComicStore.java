@@ -9,6 +9,7 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,8 @@ public class EpicComicStore {
             "Below is more info you can use to answer the question from the customer. ";
     private static final String PROMPT2 = "Please answer this question from the customer: ";
 
-    private static final boolean RAG = true;
+    @Value("${example05.useRag}")
+    private boolean useRag = false;
 
     private JdbcTemplate jdbcTemplate;
     private EmbeddingModel embeddingModel;
@@ -44,7 +46,7 @@ public class EpicComicStore {
     public String chat(String message) {
         try {
             String messageToSend = "";
-            if (RAG) {
+            if (useRag) {
                 var embeddingResponse = embeddingModel.call(
                         new EmbeddingRequest(List.of(message.toLowerCase()), ollamaEmbeddingOptions));
                 var output = embeddingResponse.getResults().get(0).getOutput();
@@ -63,7 +65,7 @@ public class EpicComicStore {
             log.info("Sending message to LLM: Message: {}", messageToSend);
             ChatResponse response = chatModel.call(new Prompt(messageToSend,
                     OpenAiChatOptions.builder()
-                            .model("llama-3.1-8b-instant") //Although this is set in properties file, have to set it here again
+                            .model("openai/gpt-oss-20b") //Although this is set in properties file, have to set it here again
                             .temperature(0.4).build()));
             return response.getResult().getOutput().getText();
         } catch (IOException e) {

@@ -20,7 +20,7 @@ import java.util.List;
 /// and that deepface and tf-keras are installed --> python3 -m pip install deepface tf-keras
 public class FaceVectorCalculator {
     // TODO Use relative path instead of absolute path
-    private static final String FACE_VECTOR_PY = "/Users/balkrishna/dev/java/github/vectordb-talk/vectordb-examples/src/main/python/face_vector.py";
+    private static final String FACE_VECTOR_PY = "/Users/balkrishna/dev/java/vectordb/vectordb-talk/vectordb-examples/src/main/python/face_vector.py";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static List<Double> calculateFaceVector(String imagePath) {
@@ -49,7 +49,8 @@ public class FaceVectorCalculator {
     }
 
     private static String getVectorAsJson(String imagePath) throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder("python3", FACE_VECTOR_PY, imagePath);
+        // It is important to provide absolute path for python3, otherwise it will fail with IOException
+        ProcessBuilder processBuilder = new ProcessBuilder("/usr/bin/python3", FACE_VECTOR_PY, imagePath);
         processBuilder.redirectErrorStream(true);
 
         // Execute process natively inside the OS runtime layer

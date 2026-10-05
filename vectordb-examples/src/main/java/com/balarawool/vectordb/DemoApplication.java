@@ -25,6 +25,7 @@ import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
 import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -50,6 +51,19 @@ import static com.balarawool.vectordb.example5.VectorSearchService.INDEX_NAME;
 @SpringBootApplication
 public class DemoApplication {
     private static final Logger log = LoggerFactory.getLogger(DemoApplication.class);
+
+    @Value("${example04.db.initialize}")
+    private boolean ex04DbInit = false;
+    @Value("${example05.db.initialize}")
+    private boolean ex05DbInit = false;
+    @Value("${example05.db.provider}")
+    private String ex05DbProvider = "postgres";
+    @Value("${example06.db.initialize}")
+    private boolean ex06DbInit = false;
+    @Value("${example07.db.initialize}")
+    private boolean ex07DbInit = false;
+    @Value("${example07.db.provider}")
+    private String ex07DbProvider = "postgres";
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
@@ -98,9 +112,8 @@ public class DemoApplication {
     @Bean
     ApplicationRunner applicationRunnerMathBig(JdbcTemplate jdbcTemplate, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
         return args -> {
-            var initializeDb = false;
-            if (initializeDb) {
-                log.info("Initializing...");
+            if (ex04DbInit) {
+                log.info("Initializing Example 4 Postgres DB...");
                 var path = ResourceUtils.getFile("classpath:data/mathematics_lines.txt").toPath();
                 var n = new AtomicInteger(1);
                 var set = new HashSet<String>();
@@ -125,9 +138,8 @@ public class DemoApplication {
     @Bean
     ApplicationRunner applicationRunnerEpic(JdbcTemplate jdbcTemplate, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
         return args -> {
-            var initializeDb = false;
-            if (initializeDb) {
-                log.info("Initializing...");
+            if (ex05DbInit && ex05DbProvider.equals("postgres")) {
+                log.info("Initializing Example 5 Postgres DB...");
                 var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
                 var n = new AtomicInteger(1);
                 var sb = new StringBuilder();
@@ -154,10 +166,9 @@ public class DemoApplication {
     @Bean
     ApplicationRunner applicationRunnerEpic2(ElasticsearchClient elasticsearchClient, OllamaEmbeddingModel ollamaEmbeddingModel, OllamaEmbeddingOptions ollamaEmbeddingOptions) {
         return args -> {
-            var initializeDb = false;
-            if (initializeDb) {
+            if (ex05DbInit && ex05DbProvider.equals("elastic")) {
                 setupIndex(elasticsearchClient);
-                log.info("Initializing...");
+                log.info("Initializing Example 5 Elasticsearch DB...");
                 var path = ResourceUtils.getFile("classpath:data/epic_comic_co_faq.txt").toPath();
                 var n = new AtomicInteger(1);
                 var sb = new StringBuilder();
@@ -234,8 +245,10 @@ public class DemoApplication {
     @Bean
     ApplicationRunner applicationRunnerWonders(WeaviateClient weaviateClient) {
         return args -> {
-            var initializeDb = false;
-            initialize(weaviateClient, initializeDb, "WonderImage", "data/wonder-images");
+            var initializeDb = ex06DbInit;
+            if (ex06DbInit) {
+                initialize(weaviateClient, "WonderImage", "data/wonder-images");
+            }
         };
     }
 
@@ -243,72 +256,71 @@ public class DemoApplication {
     @Bean
     ApplicationRunner applicationRunnerCelebrities(JdbcTemplate jdbcTemplate, WeaviateClient weaviateClient) {
         return args -> {
-            var initializeDb = false;
-//            initialize(weaviateClient, initializeDb, "Celebrities", "data/celebrities");
-            initialize(jdbcTemplate, initializeDb, "data/celebrities");
-
+            var initializeDb = ex07DbInit;
+            if (ex07DbInit && ex07DbProvider.equals("weaviate")) {
+                initialize(weaviateClient, "Celebrities", "data/celebrities");
+            }
+            if (ex07DbInit && ex07DbProvider.equals("postgres")){
+                initialize(jdbcTemplate, "data/celebrities");
+            }
         };
     }
 
-    private void initialize(WeaviateClient weaviateClient, boolean initializeDb, String className, String dataPathInRes) {
-        if (initializeDb) {
-            // First check if class is present. If it is not present, then create it and store data.
-            // If you want to delete it then do this: weaviateClient.schema().classDeleter().withClassName("Meme").run();
-            var memeClass = weaviateClient.schema().classGetter().withClassName(className).run();
-            if (memeClass.getResult() == null) {
-                // Create Class/Collection in Weaviate
-                var clazz = WeaviateClass.builder()
-                        .className(className)
-                        .vectorizer("img2vec-neural")
-                        .vectorIndexType("hnsw")
-                        .moduleConfig(Map.of("img2vec-neural", Map.of("imageFields", List.of("image"))))
-                        .properties(List.of(Property.builder().name("image").dataType(List.of("blob")).build(),
-                                Property.builder().name("text").dataType(List.of("string")).build()))
-                        .build();
-                var res = weaviateClient.schema().classCreator().withClass(clazz).run();
+    private void initialize(WeaviateClient weaviateClient, String className, String dataPathInRes) {
+        // First check if class is present. If it is not present, then create it and store data.
+        // If you want to delete it then do this: weaviateClient.schema().classDeleter().withClassName("Meme").run();
+        var memeClass = weaviateClient.schema().classGetter().withClassName(className).run();
+        if (memeClass.getResult() == null) {
+            // Create Class/Collection in Weaviate
+            var clazz = WeaviateClass.builder()
+                    .className(className)
+                    .vectorizer("img2vec-neural")
+                    .vectorIndexType("hnsw")
+                    .moduleConfig(Map.of("img2vec-neural", Map.of("imageFields", List.of("image"))))
+                    .properties(List.of(Property.builder().name("image").dataType(List.of("blob")).build(),
+                            Property.builder().name("text").dataType(List.of("string")).build()))
+                    .build();
+            var res = weaviateClient.schema().classCreator().withClass(clazz).run();
 
-                if (res.getError() == null) {
-                    // Store image files and their vectors
-                    // Files are present in resources directory with this structure:
-                    // resources
-                    //    └ data
-                    //       └ wonder-images
-                    //           ├ china-wall
-                    //           ├ coloseum
-                    //           ├ machu-picchu
-                    //           ├ pisa-tower
-                    //           ├ pyramids
-                    //           └ taj-mahal
-                    // Each of these subdirectories contain .jpg, .png etc. files.
-                    try {
-                        var sampleDir = ResourceUtils.getFile("classpath:"+dataPathInRes);
-                        for (var subDir : sampleDir.listFiles()) {
-                            for (var f : subDir.listFiles()) {
-                                embedAndStore(className, weaviateClient, f);
-                                log.info("File stored: " + f.getPath());
-                            }
+            if (res.getError() == null) {
+                // Store image files and their vectors
+                // Files are present in resources directory with this structure:
+                // resources
+                //    └ data
+                //       └ wonder-images
+                //           ├ china-wall
+                //           ├ coloseum
+                //           ├ machu-picchu
+                //           ├ pisa-tower
+                //           ├ pyramids
+                //           └ taj-mahal
+                // Each of these subdirectories contain .jpg, .png etc. files.
+                try {
+                    var sampleDir = ResourceUtils.getFile("classpath:"+dataPathInRes);
+                    for (var subDir : sampleDir.listFiles()) {
+                        for (var f : subDir.listFiles()) {
+                            embedAndStore(className, weaviateClient, f);
+                            log.info("File stored: " + f.getPath());
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
     }
 
-    private void initialize(JdbcTemplate jdbcTemplate, boolean initializeDb, String dataPathInRes) {
-        if (initializeDb) {
-            try {
-                var sampleDir = ResourceUtils.getFile("classpath:"+dataPathInRes);
-                for (var subDir : sampleDir.listFiles()) {
-                    for (var f : subDir.listFiles()) {
-                        embedAndStore(jdbcTemplate, f);
-                        log.info("File stored: " + f.getPath());
-                    }
+    private void initialize(JdbcTemplate jdbcTemplate, String dataPathInRes) {
+        try {
+            var sampleDir = ResourceUtils.getFile("classpath:"+dataPathInRes);
+            for (var subDir : sampleDir.listFiles()) {
+                for (var f : subDir.listFiles()) {
+                    embedAndStore(jdbcTemplate, f);
+                    log.info("File stored: " + f.getPath());
                 }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

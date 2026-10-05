@@ -41,6 +41,7 @@ There are three docker compose files:
 - one for Postgres and its admin console
 - another one for Weaviate and its vectorization module
 - and another one for Elasticsearch
+- and ollama
 
 ### Setup Postgres
 - Ensure you have the two containers running for postgres using docker compose (go to the directory and run `docker compose up -d`)
@@ -54,6 +55,28 @@ There are three docker compose files:
 
 ### Setup Elasticsearch
 - Ensure you have a container running for Elasticsearch using docker compose (go to the directory and run `docker compose up -d`)
+- Useful cURL commands:
+  - To see all documents in the index:
+```
+curl -X GET "http://localhost:9200/epic_comic_store_vector_index/_search?pretty&size=100" -H 'Content-Type: application/json' -d'
+{
+  "query": { "match_all": {} }
+}
+'
+```
+- To delete all documents from the index:
+```
+curl -X POST "http://localhost:9200/epic_comic_store_vector_index/_delete_by_query" -H 'Content-Type: application/json' -d'
+{
+  "query": { "match_all": {} }
+}
+'
+```
+- To delete the index
+`curl -X DELETE "http://localhost:9200/epic_comic_store_vector_index"`
+
+### Setup Ollama
+- Run `docker pull ollama/ollama` and start the ollama container using `docker run -d -p 11434:11434 --name ollama ollama/ollama` and on its terminal run `ollama pull nomic-embed-text`
 
 ### Data
 - Various examples use a lot of data. Mostly images (jpeg, png files).

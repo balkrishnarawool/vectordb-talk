@@ -32,7 +32,7 @@ public class WikiWord2Vec {
     private static int K = 10;
     private static final String DATA_FILE = "src/main/resources/data/wiki_4pages.txt";
     private static final String VECTOR_FILE = "src/main/resources/data/vectors_wiki4_google_w2v.txt";
-    private static final String GOOGLE_W2V_FILE = "google_w2v/GoogleNews-vectors-negative300.bin.gz";
+    private static final String GOOGLE_W2V_FILE = "google_w2v/GoogleNews-vectors-negative300.bin";
 
     private VectorDB<String> vdb = null;
 

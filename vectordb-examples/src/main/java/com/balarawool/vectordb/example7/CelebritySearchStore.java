@@ -23,6 +23,7 @@ import java.util.Optional;
 @Service
 public class CelebritySearchStore {
     private static final Logger log = LoggerFactory.getLogger(CelebritySearchStore.class);
+    private static final boolean USE_WEAVIATE = true;
 
     private WeaviateClient weaviateClient;
     private JdbcTemplate jdbcTemplate;
@@ -32,24 +33,31 @@ public class CelebritySearchStore {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-//    public ResponseEntity<Result<GraphQLResponse>> search(MultipartFile file) {
-//        try {
-//            Result<GraphQLResponse> r = weaviateClient.graphQL().get()
-//                    .withClassName("Celebrities")
-//                    .withFields(Field.builder().name("image").build())
-//                    .withNearImage(NearImageArgument.builder()
-//                            .image(Base64.getEncoder().encodeToString(file.getBytes()))
-//                            .build())
-//                    .withLimit(6)
-//                    .run();
-//
-//            return ResponseEntity.ok(r);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    public Object search(MultipartFile file) {
+        if (USE_WEAVIATE) {
+            return searchWeaviate(file);
+        } else {
+            return searchPostgres(file).orElse(new ImageData("", ""));
+        }
+    }
 
-    public Optional<ImageData> search(MultipartFile file) {
+    public Result<GraphQLResponse> searchWeaviate(MultipartFile file) {
+        try {
+            Result<GraphQLResponse> r = weaviateClient.graphQL().get()
+                    .withClassName("Celebrities")
+                    .withFields(Field.builder().name("image").build())
+                    .withNearImage(NearImageArgument.builder()
+                            .image(Base64.getEncoder().encodeToString(file.getBytes()))
+                            .build())
+                    .withLimit(6)
+                    .run();
+            return r;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Optional<ImageData> searchPostgres(MultipartFile file) {
         try {
             log.info(System.getProperty("java.io.tmpdir"));
             Path tempFile = Files.createTempFile("upload-", file.getOriginalFilename());

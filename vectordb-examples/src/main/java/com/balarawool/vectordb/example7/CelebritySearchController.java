@@ -13,8 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class CelebritySearchController {
     private CelebritySearchStore celebritySearchStore;
 
-    public CelebritySearchController(CelebritySearchStore froogleSearchStore) {
-        this.celebritySearchStore = froogleSearchStore;
+    public CelebritySearchController(CelebritySearchStore celebritySearchStore) {
+        this.celebritySearchStore = celebritySearchStore;
+    }
+
+    @PostMapping("/celebrity-search")
+    public ResponseEntity<?> search(MultipartFile file) {
+        return ResponseEntity.ok(celebritySearchStore.search(file));
     }
 
 //    @PostMapping("/celebrity-search")
@@ -22,8 +27,8 @@ public class CelebritySearchController {
 //        return celebritySearchStore.search(file);
 //    }
 
-    @PostMapping("/celebrity-search")
-    public ResponseEntity<ImageData> search(MultipartFile file) {
-        return ResponseEntity.ok(celebritySearchStore.search(file).orElse(new ImageData("", "")));
-    }
+//    @PostMapping("/celebrity-search")
+//    public ResponseEntity<ImageData> search(MultipartFile file) {
+//        return ResponseEntity.ok(celebritySearchStore.search(file).orElse(new ImageData("", "")));
+//    }
 }

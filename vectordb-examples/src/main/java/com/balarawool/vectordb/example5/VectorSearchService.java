@@ -13,6 +13,12 @@ import java.util.List;
 
 ///
 /// Uses Elasticsearch to search within the Epic Comic Co FAQ
+/// Use below CURL command to list all documents in this index:
+/// curl -X GET "http://localhost:9200/epic_comic_store_vector_index/_search?pretty&size=100" -H 'Content-Type: application/json' -d'
+/// {
+///   "query": { "match_all": {} }
+/// }
+/// '
 @Service
 public class VectorSearchService {
     private static final Logger log = LoggerFactory.getLogger(VectorSearchService.class);
