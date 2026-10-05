@@ -47,7 +47,7 @@ public record Vector(double[] embedding) {
         }
         // Handle remaining elements
         for (int i = length; i < result.length; i++) {
-            result[i] = a[i] - b[i];
+            result[i] = a[i] + b[i];
         }
 
         return new Vector(result);

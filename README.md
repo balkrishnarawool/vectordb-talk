@@ -29,19 +29,23 @@ It primarily uses:
 And the various examples use:
 - Postgres with pgvector extension (run as docker container)
 - Weavite with img2vec-neural vectorization module (run as docker container)
-- Local or cloud LLM (Currently using llama-3.1-8b-instant via Groq)
+- Local or cloud LLM (Currently using openai/gpt-oss-20b via Groq)
 
 ### GoogleNews Word2Vec
 - Example 3 uses GoogleNews Word2Vec model
 - Download it from here: https://github.com/mmihaltz/word2vec-GoogleNews-vectors/blob/master/GoogleNews-vectors-negative300.bin.gz
 - Note that loading it takes quite some time (150 seconds on MacBook Air 2020)
 
+### Ollama
+- The project requires ollama with `nomic-embed-text` embedding available.
+- This is used in example 4. The easiest would be to run it as a docker container.
+- Run `docker pull ollama/ollama` and start the ollama container using `docker run -d -p 11434:11434 --name ollama ollama/ollama` and on its terminal run `ollama pull nomic-embed-text`
+
 ### Docker containers:
 There are three docker compose files:
 - one for Postgres and its admin console
 - another one for Weaviate and its vectorization module
 - and another one for Elasticsearch
-- and ollama
 
 ### Setup Postgres
 - Ensure you have the two containers running for postgres using docker compose (go to the directory and run `docker compose up -d`)
@@ -55,34 +59,13 @@ There are three docker compose files:
 
 ### Setup Elasticsearch
 - Ensure you have a container running for Elasticsearch using docker compose (go to the directory and run `docker compose up -d`)
-- Useful cURL commands:
-  - To see all documents in the index:
-```
-curl -X GET "http://localhost:9200/epic_comic_store_vector_index/_search?pretty&size=100" -H 'Content-Type: application/json' -d'
-{
-  "query": { "match_all": {} }
-}
-'
-```
-- To delete all documents from the index:
-```
-curl -X POST "http://localhost:9200/epic_comic_store_vector_index/_delete_by_query" -H 'Content-Type: application/json' -d'
-{
-  "query": { "match_all": {} }
-}
-'
-```
-- To delete the index
-`curl -X DELETE "http://localhost:9200/epic_comic_store_vector_index"`
-
-### Setup Ollama
-- Run `docker pull ollama/ollama` and start the ollama container using `docker run -d -p 11434:11434 --name ollama ollama/ollama` and on its terminal run `ollama pull nomic-embed-text`
+- See useful commands here: [Elasticsearch.md](Elasticsearch.md)
 
 ### Data
 - Various examples use a lot of data. Mostly images (jpeg, png files).
 - If you look at [DemoApplication](vectordb-examples/src/main/java/com/balarawool/vectordb/DemoApplication.java), you can see that these need to be in a specific structure. 
 - As this is large binary data, I did not add it to the git repo. Please reach out to me via the socials (Bluesky or Twitter) if you need this data.
-- Also, various methods in [DemoApplication](vectordb-examples/src/main/java/com/balarawool/vectordb/DemoApplication.java) make use of `initializeDb` fields to indicate if you want to extract vectors are store them in database.
+- Also, there are various properties from [application.properties](vectordb-examples/src/main/resources/application.properties) to indicate if you want to extract vectors are store them in database.
 So change them to `true` when running for the first time and subsequently to `false`.
 
 ### Python
