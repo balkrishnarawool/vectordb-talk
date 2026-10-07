@@ -26,7 +26,16 @@ public class EpicComicStore {
             "Below is more info you can use to answer the question from the customer. ";
     private static final String PROMPT2 = "Please answer this question from the customer: ";
 
-    @Value("${example05.useRag}")
+    @Value("${spring.ai.ollama.chat.model}")
+    private String ollamaChatModel = "gemma4:e2b";
+
+    @Value("${spring.ai.openai.chat.model}")
+    private String openaiChatModel = "openai/gpt-oss-20b";
+
+    @Value("${example05.model.provider}")
+    private String modelProvider = "ollama";
+
+    @Value("${example05.use-rag}")
     private boolean useRag = false;
 
     private JdbcTemplate jdbcTemplate;
@@ -65,13 +74,21 @@ public class EpicComicStore {
             log.info("Sending message to LLM: Message: {}", messageToSend);
             ChatResponse response = chatModel.call(new Prompt(messageToSend,
                     OpenAiChatOptions.builder()
-                            .model("openai/gpt-oss-20b") //Although this is set in properties file, have to set it here again
+                            .model(getChatModel()) //Although this is set in properties file, have to set it here again
                             .temperature(0.4).build()));
             return response.getResult().getOutput().getText();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return "";
+    }
+
+    private String getChatModel() {
+        return switch (modelProvider) {
+          case "ollama" -> ollamaChatModel;
+          case "groq" -> openaiChatModel;
+            default -> ollamaChatModel;
+        };
     }
 
 }

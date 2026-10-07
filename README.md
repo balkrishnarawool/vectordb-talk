@@ -37,9 +37,12 @@ And the various examples use:
 - Note that loading it takes quite some time (150 seconds on MacBook Air 2020)
 
 ### Ollama
-- The project requires ollama with `nomic-embed-text` embedding available.
-- This is used in example 4. The easiest would be to run it as a docker container.
-- Run `docker pull ollama/ollama` and start the ollama container using `docker run -d -p 11434:11434 --name ollama ollama/ollama` and on its terminal run `ollama pull nomic-embed-text`
+- The project requires ollama with `nomic-embed-text` embedding available (and optionally `gemma4:e2b` model)
+- `nomic-embed-text` is used in example 4 and example 5. `gemma4:e2b` is one of the options for example 5.
+- The easiest would be to run Ollama as a docker container.
+- Run `docker pull ollama/ollama` and start the ollama container using `docker run -d -p 11434:11434 --name ollama ollama/ollama`.
+- Then, on its terminal run `ollama pull nomic-embed-text` to get `nomic-embed-text` embedding model 
+- And run `ollama pull gemma4:e2b` followed by `ollama run gemma4:e2b` to pull and run `gemma4:e2b`, if you want to.
 
 ### Docker containers:
 There are three docker compose files:

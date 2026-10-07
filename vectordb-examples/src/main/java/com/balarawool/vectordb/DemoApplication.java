@@ -58,6 +58,8 @@ public class DemoApplication {
     private boolean ex05DbInit = false;
     @Value("${example05.db.provider}")
     private String ex05DbProvider = "postgres";
+    @Value("${example05.model.provider}")
+    private String ex05ModelProvider = "ollama";
     @Value("${example06.db.initialize}")
     private boolean ex06DbInit = false;
     @Value("${example07.db.initialize}")
@@ -83,8 +85,13 @@ public class DemoApplication {
     // We want to use OpenAiChatModel.
     @Bean
     @Primary
-    public ChatModel chatModel(@Qualifier("openAiChatModel") ChatModel openAiChatModel) {
-        return openAiChatModel;
+    public ChatModel chatModel(@Qualifier("openAiChatModel") ChatModel openAiChatModel,
+                               @Qualifier("ollamaChatModel") ChatModel ollamaChatModel) {
+        return switch (ex05ModelProvider) {
+            case "ollama" -> ollamaChatModel;
+            case "groq" -> openAiChatModel;
+            default -> ollamaChatModel;
+        };
     }
 
     @Bean
